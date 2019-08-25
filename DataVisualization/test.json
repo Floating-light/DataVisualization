@@ -1,0 +1,33 @@
+[
+  {
+    "type": "file",
+    "field": "model",
+    "puls": "",
+    "outPutColum": "field"
+  },
+  {
+    "type": "input",
+    "field": "name",
+    "saveType": "db"
+  },
+  {
+    "type": "multiSelect",
+    "field": "labels",
+    "saveType": "db"
+  },
+  {
+    "type": "input",
+    "field": "description",
+    "saveType": "db"
+  },
+  {
+    "type": "select",
+    "field": "maxVersion",
+    "saveType": "db"
+  },
+  {
+    "type": "select",
+    "field": "style",
+    "saveType": "db"
+  }
+]
