@@ -9,3 +9,5 @@ DataVisualization/GeneratedFiles
 *.vcxproj*
 *.txt
 *.xlsx
+*.sln
+*.VC*
