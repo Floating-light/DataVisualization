@@ -4,7 +4,6 @@ x64
 packages
 last
 DataVisualization/x64
-DataVisualization/data
 DataVisualization/GeneratedFiles
 *.vcxproj*
 *.txt

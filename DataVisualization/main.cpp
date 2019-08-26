@@ -12,7 +12,7 @@
 #include <QDir>
 
 #include "DataVisualization.h"
-const QString filepath = "C:\\Users\\liuyu\\Desktop\\DataVisualization\\DataVisualization\\input\\new1-8.xlsx";
+const QString filepath = "C:\\source\\DataVisualization\\DataVisualization\\input\\new1-8.xlsx";
 
 using namespace std;
 
