@@ -12,7 +12,7 @@
 #include "service.h"
 
 #include "DataVisualization.h"
-const QString filepath = "C:\\Users\\PIS\\Desktop\\DataVisualization\\DataVisualization\\input\\qwe.xlsx";
+const QString filepath = "C:\\Users\\PIS\\Desktop\\DataVisualization\\DataVisualization\\input\\datasj.xlsx";
 
 using namespace std;
 
