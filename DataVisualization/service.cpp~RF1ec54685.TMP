@@ -1118,8 +1118,13 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 							else
 								ret2 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 									+ constMonth + QString::fromLocal8Bit(std::string("Ô¤ÅÐ¼ÆËã").data()), tempi).toDouble();
-							output += ret2;
-							count++;	
+							if (ret2 == 0) {
+								;
+							}
+							else {
+								output += ret2;
+								count++;
+							}
 							remain -= 1;
 						}
 					}
@@ -1195,7 +1200,7 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 						dmonth--;
 						double ret1 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("¹©»õ").data()), tempi).toDouble();
-						if (ret1 > 0) {
+						if (ret1 != 0) {
 							isok = true;
 							break;
 						}
