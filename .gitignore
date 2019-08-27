@@ -1,27 +1,63 @@
 
+
 .vs
+
+
 
 TestExcelServer
 
+
+
 x64
+
+
 
 packages
 
+
+
 last
+
+
 
 DataVisualization/x64
 
+
+
 DataVisualization/data
+
+DataVisualization/input
 
 DataVisualization/GeneratedFiles
 
+
+
 *.vcxproj*
+
+
 
 *.txt
 
+
+
 *.xlsx
+
+
 
 *.sln
 
+
+
 *.VC*
 
+.vs
+TestExcelServer
+x64
+packages
+last
+DataVisualization/x64
+DataVisualization/GeneratedFiles
+*.vcxproj*
+*.txt
+*.xlsx
+*.sln

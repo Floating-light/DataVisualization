@@ -604,7 +604,7 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 		}
 		else
 		{
-			printf("Warning : row %d missing->%s.\n", i, qPrintable(xmlx));
+			printf("Warning : row %d %s->%s.\n", i,qPrintable(QStringLiteral("项目类型")) ,qPrintable(xmlx));
 		}
 	}
 }
