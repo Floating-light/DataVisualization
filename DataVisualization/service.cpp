@@ -380,7 +380,7 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					radio = 0.5;
 				else if (syb.compare(QString::fromLocal8Bit(std::string("商开").data())) == 0) {
 					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), i).toString();
-					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data()))) {
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data()))==0) {
 						radio = 0.6;
 					}
 					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0) {
@@ -419,13 +419,8 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					{
 						double ret2 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("签约已达成").data()), i).toDouble();
-						if (ret2 == 0) {
-							;
-						}
-						else {
-							output += ret2;
-							count++;	
-						}
+						output += ret2;
+						count++;	
 						remain -= 1;
 					}
 				}
@@ -501,15 +496,13 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					dmonth--;
 					double ret1 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("供货").data()), i).toDouble();
-					if (ret1 != 0) {
+					if (ret1 > 0.000001) {
 						isok = true;
 						break;
 					}
 					diff--;
 				}
-				if (isok) {
-					double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
-						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
+				if (isok) {			
 					double qhljz;
 					double wyyjll;
 					int dyear = currentYear;
@@ -521,11 +514,8 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 						dmonth -= 1;
 						double qhl = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("去化率").data()), i).toDouble();
-						if (qhl < 0.00001)
+						if (qhl > 0.000001)
 						{
-							;
-						}
-						else {
 							output += qhl;
 							count++;
 						}
@@ -537,6 +527,9 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					else {
 						qhljz = 0;
 					}
+
+					double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
+						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
 
 					int circletime;
 					if(currentYear==fyear)

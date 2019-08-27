@@ -115,23 +115,21 @@ int main(int argc, char *argv[])
 	
 	calCurrent(QString::fromLocal8Bit(std::string("./input/2��ǰ��-����.txt").data()), excelServer);
 	
-	calYear(QString::fromLocal8Bit(std::string("./input/3���-����.txt").data()), excelServer);
+	calYear(QString::fromLocal8Bit(std::string("./input/3���?����.txt").data()), excelServer);
 
-	calHistary(QString::fromLocal8Bit(std::string("./input/4��ʷ��-���.txt").data()), excelServer);
+	calHistary(QString::fromLocal8Bit(std::string("./input/4��ʷ��-���?txt").data()), excelServer);
 
-	calCurrent(QString::fromLocal8Bit(std::string("./input/5��ǰ��-���.txt").data()), excelServer);
+	calCurrent(QString::fromLocal8Bit(std::string("./input/5��ǰ��-���?txt").data()), excelServer);
 
-	//6���ӹ�ʽ-���.txt
+	//6���ӹ�ʽ-���?txt
 	//���ǩԼ��ɣ���ҵ���棩
 	yearPredict3(excelServer);
 	//���ȫ�ھ�������ɣ���ҵ���棩
 	yearPredict1(excelServer);
-	//���Ȩ��ھ�������ɣ���ҵ���棩
-	yearPredict5(excelServer);
+	//���Ȩ��ھ�������ɣ���ҵ����?	yearPredict5(excelServer);
 	//�ۺ�ȫ�ھ�������
 	predictcurrentMonth3(excelServer);
-	//�ۺ�Ȩ��ھ�������
-	predictcurrentMonth4(excelServer);
+	//�ۺ�Ȩ��ھ�������?	predictcurrentMonth4(excelServer);
 
 	//7���ӹ�ʽ - Ԥ�м���.txt
 	//��Ŀ����
@@ -139,17 +137,16 @@ int main(int argc, char *argv[])
 	//Ԥ��
 	predictcurrentMonth2(excelServer);
 
-	calCurrent(QString::fromLocal8Bit(std::string("./input/8��ǰ��-����ͻ���Ԥ��.txt").data()), excelServer);
+	calCurrent(QString::fromLocal8Bit(std::string("./input/8��ǰ��-����ͻ���Ԥ��?txt").data()), excelServer);
 	calCurrent(QString::fromLocal8Bit(std::string("./input/9��ǰ��-����.txt").data()), excelServer);
 	
 	//���ǩԼ��ɣ����ư棩
 	yearPredict4(excelServer);
 	//���ȫ�ھ�������ɣ����ư棩
 	yearPredict2(excelServer);
-	//���Ȩ��ھ�������ɣ����ư棩
-	yearPredict6(excelServer);
+	//���Ȩ��ھ�������ɣ����ư�?	yearPredict6(excelServer);
 
-	calYear(QString::fromLocal8Bit(std::string("./input/11���-����.txt").data()), excelServer);*/
+	calYear(QString::fromLocal8Bit(std::string("./input/11���?����.txt").data()), excelServer);*/
 	
 	//*************************************************************************************************
 
