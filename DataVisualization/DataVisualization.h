@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include <algorithm>
+#include <limits>
 #include <QtWidgets/QMainWindow>
 #include "ui_DataVisual.h"
 #include <ActiveQt/qaxobject.h>
@@ -55,6 +57,10 @@ typedef QList<DataList> DataTable;
 
 constexpr auto excelFilePath = "C:/fileds.xlsx";
 
+const std::vector<QString> selectHeaderName{QStringLiteral("事业部\n（住开/商开）"),
+    QStringLiteral("大区\n（南/中/北）"),QStringLiteral("业态"),
+	QStringLiteral("城市环线") };
+
 class DataVisualization : public QMainWindow
 {
 	Q_OBJECT
@@ -62,39 +68,50 @@ class DataVisualization : public QMainWindow
 public:
 	DataVisualization(QWidget *parent = Q_NULLPTR);
 
+	std::vector<bool> rowChecked;
+
 	void displayData(const QList<QList<QVariant>>& data,const  std::vector<QString>& headers);
 	void displayData(const std::vector<std::vector<QVariant>>& data,int beginRow ,int headerRow);
+	void displaySelectRow(const std::vector<int>& rowsNumber);
+	std::vector<int>  getSelectRowNumber(const std::vector<QString>& headType, const std::vector<QString>& traget);
+	
+	//std::vector<int>  selectRowNumber(const std::vector<QString>& headType, const std::vector<QString>& traget);
+	//get unique item QString vector under header name
+	void uniqueItem(const QString& headerName, std::vector<QString>& items);
 
+	void addSelectCombox(const QString& headerName);
+	ItemSelectCombox* createSelectCombox(const QString& headerName);
+	
+	void filterItem();
+
+	void displayScatterChart();
+	void displayLineChart();
+	void displayBarChart();
+public slots:
+	void buttonPress();
+	void checkBoxchange(int state);
+	void comboxChanged(const QString& text);
 private:
+
+	int count = 0;
 	Ui::DataVisualizationClass ui;
 	DataTable m_dataTable;
 	QChartView*chartView ;
 	QTableWidget* tableWidget;
 	QHBoxLayout* hLayout;
-	void DataVisualization::Read_Excel(const QString PATH, const QString FILENAME, 
-		const int SHEETNUM, const QString RANGE, const int INVALIDROW,
-		const int TOTALCOLNUM, std::vector<QString>& RESULT);
 
-	void readAll(const QString Path);
-
-	void import();
+	std::map<QString, std::vector<double>> scatterData;
 
 	QChart* createLineChart() const;
-
+	QChart* createScatterChart();
+	QChart* createScatterChartTwo();
+	QChart* createBarChart();
 	DataTable generateRandomData(int listCount, int valueMax, int valueCount)const;
 	void addData(int column);
-
-	//excel host
-	QAxObject* excel;
-
-	//get a work book bind with a excel file.
-	QAxObject* getWorkBooks(const QString& );
-
-	//get number i sheet
-	QAxObject* getSheet(QAxObject* workBook, int number);
-
-	//do some test
-	void standardTest();
+	void addSelectedRowColumData(int column);
+	void updataChartData();
+	//return -1 if not find, begin with 0
+	int headerString2ColumnNumber(const QString& headerName);
 private slots:
 	void headerClicked(int);
 

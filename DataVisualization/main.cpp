@@ -836,9 +836,14 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	ExcelDataServer* excelServer = new ExcelDataServer();
 	//printf("open file : %s\n", qPrintable(excelPath));
+	printf("Open file : %s\n", qPrintable(filepath));
 	QAxObject* worrkbook = excelServer->openExcelFile(filepath);
 	if (worrkbook == NULL)
 		printf("open file failed : %s, %p\n", qPrintable(filepath), worrkbook);
+	else
+	{
+		printf("open success\n");
+	}
 	QAxObject* worksheets = worrkbook->querySubObject("WorkSheets");
 	QAxObject * sheet = excelServer->getSheet(worrkbook, 1);//updata work sheets.
 	//QAxObject* sheet = excelServer->getNamedSheet(worksheets,
@@ -860,32 +865,13 @@ int main(int argc, char *argv[])
 	QVariantList resultColum3;
 	excelServer->getRowData(sheet, 3, resultColum3);//获取第三行的值
 
-	/*QAxObject* cellA23 = sheet->querySubObject("Range(QVariant, QVariant)", "A23");
-	QVariant resA23 = cellA23->property("Value");
-	printf("data : %s\n", qPrintable(resA23.toString()));*/
-	/******************************************************************/
-	/*QList<QList<QVariant>> result;
-	std::vector<QString> selected{
-		QString::fromLocal8Bit(std::string("营销操盘方").data()),
-			QString::fromLocal8Bit(std::string("首开日期").data()),
-			QString::fromLocal8Bit(std::string("城市环线").data()) };
-
-	excelServer->selectWhere(selected,
-		QString::fromLocal8Bit(std::string("股权比例").data()),
-		QString::fromLocal8Bit(std::string("13").data()), result);*/
-	/*result.push_front(QList<QVariant>{
-		QString::fromLocal8Bit(std::string("营销操盘方").data()),
-		QString::fromLocal8Bit(std::string("首开日期").data()),
-		QString::fromLocal8Bit(std::string("城市环线").data())});*/
-
-	/*DataVisualization widget;
+	DataVisualization widget;
 	widget.displayData(excelServer->sheetContent, 3, 2);
-	widget.show();*/
+	widget.show();
 
-	//excelServer->writeArea(newSheets, result);
 	/******************************************************************/
-	//19年1月期初库存+19年1月供货     19年1月可售
-	calHistary(QString::fromLocal8Bit(std::string("./input/1历史月-基础.txt").data()), excelServer);
+	//core calculate 
+	/*calHistary(QString::fromLocal8Bit(std::string("./input/1历史月-基础.txt").data()), excelServer);
 	
 	calCurrent(QString::fromLocal8Bit(std::string("./input/2当前月-基础.txt").data()), excelServer);
 	
@@ -923,9 +909,9 @@ int main(int argc, char *argv[])
 	//年度权益口径回笼达成（趋势版）
 	yearPredict6(excelServer);
 
-	calYear(QString::fromLocal8Bit(std::string("./input/11年度-趋势.txt").data()), excelServer);
+	calYear(QString::fromLocal8Bit(std::string("./input/11年度-趋势.txt").data()), excelServer);*/
 	
-	//******************************************************************************************8*******
+	//*************************************************************************************************
 
 	//write all data
 	QVariant var;
@@ -934,8 +920,8 @@ int main(int argc, char *argv[])
 
 	worrkbook->dynamicCall("Save()");
 	excelServer->freeExcel();
-	a.exit();
-	return 0;
+	
+	return a.exec();
 }
 
 
