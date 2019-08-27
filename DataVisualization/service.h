@@ -5,6 +5,7 @@
 #include "data/ExcelDataServer.h"
 #include <qdebug.h>
 #include <limits>
+#include <QMap>
 using namespace std;
 
 class service
@@ -49,11 +50,12 @@ public:
 	void setEndRow(int);
 	int getStartRow();
 	int getEndRow();
-
+	QMap <QString, QStringList> getReport();
 	~service();
 
 private:
 	int startRow;
 	int endRow;
+	QMap <QString, QStringList> report;
 };
 

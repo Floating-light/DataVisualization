@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 	//excelServer->writeArea(newSheets, result);
 	/******************************************************************/
 	service proService(startrow, endrow);
+	QMap<QString, QStringList> report = proService.getReport();
 	proService.confirm(excelServer);
 	//write all data
 	QVariant var;
