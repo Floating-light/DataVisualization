@@ -112,6 +112,7 @@ void ExcelDataServer::writeArea(QAxObject* tragetSheet, const QList<QList<QVaria
 	QAxObject* range = tragetSheet->querySubObject("Range(const QString&)", rangStr);
 	if (NULL == range || range->isNull())
 	{
+		printf("Get export range filed!\n");
 		return ;
 	}
 	bool succ = false;
@@ -211,7 +212,7 @@ void ExcelDataServer::writeColum(QAxObject* sheet, QString range, const QVariant
 {
 	QAxObject* allEnvData = sheet->querySubObject("Range(QString)", range);
 	allEnvData->setProperty("Value", data);
-}
+} 
 
 int ExcelDataServer::getRowsNumber()
 {
@@ -654,22 +655,14 @@ void ExcelDataServer::writedata(QVariant data, QString c, int r)
 	auto iter = nameToSubScript.find(c);
 	if (iter == nameToSubScript.end())
 	{
-		printf("can not find cell （column：%s, row: %s）\n", qPrintable(c), r);
+		printf("can not find cell （column：%s, row: %d）\n", qPrintable(c), r);
 		return;
 	}
 	sheetContent[r - 1][iter->second] = data;
-	/*QVariantList rowsData = sheetContent.toList();
-	QVariantList tragetRow = rowsData.at(r - 1).toList();
-	tragetRow[iter->second] = data;*/
+}
 
-	//auto iter = nameToColum.find(c);
-	//if (iter == nameToColum.end())
-	//{
-	//	printf("can not find column : %s\n", qPrintable(c));
-	//	return;
-	//}
-
-	//QAxObject* cell = currentWorksheet->querySubObject("Range(QVariant, QVariant)",
-	//	iter->second + QString::number(r));
-	//cell->dynamicCall("SetValue(const QVariant&)", data);//设置单元格的值
+void ExcelDataServer::exportSheet(const QList<QList<QVariant>>& exportData, const QString& sheetName)
+{
+	QAxObject* newSheet =  addSheet(currentWorksheets, sheetName);
+	writeArea(newSheet, exportData);
 }

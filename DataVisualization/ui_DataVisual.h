@@ -32,6 +32,7 @@ public:
     QMenuBar *menuBar;
 	QMenu* menuFile;
 	QMenu* menuEdit;
+	QMenu* menuExport;
 
     QToolBar *mainToolBar;
     QWidget *centralWidget;
@@ -42,6 +43,9 @@ public:
 	QAction* histogramChart;
 	QAction* scatterChart;
 	QAction* lineChart;
+	QAction* calculate;
+	QAction* saveFile;
+	std::vector<QAction*> exportActions;
 
 	QHBoxLayout* topCombox;
 	QHBoxLayout* viewLayout;
@@ -65,6 +69,8 @@ public:
 		histogramChart = new QAction(DataVisualizationClass);
 		scatterChart = new QAction(DataVisualizationClass);
 		lineChart = new QAction(DataVisualizationClass);
+		calculate = new QAction(DataVisualizationClass);
+		saveFile = new QAction(DataVisualizationClass);
 
         menuBar = new QMenuBar(DataVisualizationClass);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
@@ -85,6 +91,11 @@ public:
 
 		menuBar->addAction(menuEdit->menuAction());
 
+		menuExport = new QMenu(menuBar);
+		menuExport->setObjectName(QString::fromUtf8("menuEdit"));
+
+		menuBar->addAction(menuExport->menuAction());
+
         mainToolBar = new QToolBar(DataVisualizationClass);
         mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));
         DataVisualizationClass->addToolBar(mainToolBar);
@@ -94,6 +105,8 @@ public:
 		mainToolBar->addAction(histogramChart);
 		mainToolBar->addAction(lineChart);
 		mainToolBar->addAction(scatterChart);
+		mainToolBar->addAction(calculate);
+		mainToolBar->addAction(saveFile);
 
 		topCombox = new QHBoxLayout();
 		topCombox->setAlignment(Qt::AlignLeft);
@@ -102,7 +115,7 @@ public:
 
 		chartLineEdit = new QLineEdit();
 		chartLineEdit->setPlaceholderText(QStringLiteral("请输入图表所需要展示的表头"));
-		chartLineEdit->setText(QStringLiteral("19年2月综合全口径回笼率,19年2月综合权益口径回笼率"));
+		chartLineEdit->setText(QStringLiteral("19年年度供货,19年年度可售"));
 
 		mainVLayout = new QVBoxLayout();
 		mainVLayout->addWidget(chartLineEdit);
@@ -154,8 +167,15 @@ public:
 		lineChart->setText(QStringLiteral("折线图"));
 		lineChart->setIcon(QIcon("./Resources/line.png"));
 
+		calculate->setText(QStringLiteral("计算"));
+		calculate->setIcon(QIcon("./Resources/caclute.png"));//saveFile
+
+		saveFile->setText(QStringLiteral("保存"));
+		saveFile->setIcon(QIcon("./Resources/save.png"));//saveFile
+
 		menuFile->setTitle(QString::fromLocal8Bit(std::string("文件").data()));
 		menuEdit->setTitle(QString::fromLocal8Bit(std::string("视图").data()));
+		menuExport->setTitle(QString::fromLocal8Bit(std::string("导出").data()));
 	} // retranslateUi
 
 };

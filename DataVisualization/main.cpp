@@ -12,7 +12,7 @@
 #include "service.h"
 
 #include "DataVisualization.h"
-const QString filepath = "C:\\Users\\PIS\\Desktop\\DataVisualization\\DataVisualization\\input\\datasj.xlsx";
+const QString filepath = "C:\\source\\DataVisualization\\DataVisualization\\input\\new1-8.xlsx";
 
 using namespace std;
 
@@ -74,39 +74,39 @@ void geneComplexTable(QString v) {
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	ExcelDataServer* excelServer = new ExcelDataServer();
-	//printf("open file : %s\n", qPrintable(excelPath));
-	printf("Open file : %s\n", qPrintable(filepath));
-	QAxObject* worrkbook = excelServer->openExcelFile(filepath);
-	if (worrkbook == NULL)
-		printf("open file failed : %s, %p\n", qPrintable(filepath), worrkbook);
-	else
-	{
-		printf("open success\n");
-	}
-	QAxObject* worksheets = worrkbook->querySubObject("WorkSheets");
-	QAxObject * sheet = excelServer->getSheet(worrkbook, 1);//updata work sheets.
-	//QAxObject* sheet = excelServer->getNamedSheet(worksheets,
-		//QString::fromLocal8Bit(std::string("��������").data()));
-	excelServer->setCurrentWorksheet(sheet);
+	//ExcelDataServer* excelServer = new ExcelDataServer();
+	////printf("open file : %s\n", qPrintable(excelPath));
+	//printf("Open file : %s\n", qPrintable(filepath));
+	//QAxObject* worrkbook = excelServer->openExcelFile(filepath);
+	//if (worrkbook == NULL)
+	//	printf("open file failed : %s, %p\n", qPrintable(filepath), worrkbook);
+	//else
+	//{
+	//	printf("open success\n");
+	//}
+	//QAxObject* worksheets = worrkbook->querySubObject("WorkSheets");
+	//QAxObject * sheet = excelServer->getSheet(worrkbook, 1);//updata work sheets.
+	////QAxObject* sheet = excelServer->getNamedSheet(worksheets,
+	//	//QString::fromLocal8Bit(std::string("��������").data()));
+	//excelServer->setCurrentWorksheet(sheet);
 
-	//add a new sheet
-	//QAxObject * newSheets = excelServer->addSheet(excelServer->getCurrentWorkSheets(), QString("selectedTest"));
-	QAxObject* usedrange = sheet->querySubObject("UsedRange");
-	excelServer->setAllData(usedrange);
-	int columsNumber = excelServer->getColumsNumber();
-	int rowsNumber = excelServer->getRowsNumber();
+	////add a new sheet
+	////QAxObject * newSheets = excelServer->addSheet(excelServer->getCurrentWorkSheets(), QString("selectedTest"));
+	//QAxObject* usedrange = sheet->querySubObject("UsedRange");
+	//excelServer->setAllData(usedrange);
+	//int columsNumber = excelServer->getColumsNumber();
+	//int rowsNumber = excelServer->getRowsNumber();
 
-	int startrow = 4;
-	int endrow = rowsNumber;
-	//���㿪ʼ��������
-	excelServer->setBeginEndRow(startrow , endrow);
+	//int startrow = 4;
+	//int endrow = rowsNumber;
+	////���㿪ʼ��������
+	//excelServer->setBeginEndRow(startrow , endrow);
 
-	QVariantList resultColum3;
-	excelServer->getRowData(sheet, 3, resultColum3);//��ȡ�����е�ֵ
+	//QVariantList resultColum3;
+	//excelServer->getRowData(sheet, 3, resultColum3);//��ȡ�����е�ֵ
 
 	DataVisualization widget;
-	widget.displayData(excelServer->sheetContent, 3, 2);
+	//widget.displayData(excelServer->sheetContent, 3, 2);
 	widget.show();
 
 	/******************************************************************/
@@ -151,16 +151,17 @@ int main(int argc, char *argv[])
 	//*************************************************************************************************
 
 
-	service proService(startrow, endrow);
-	QMap<QString, QStringList> report = proService.getReport();
-	proService.confirm(excelServer);
+	//service proService(startrow, endrow);
+	//QMap<QString, QStringList> report = proService.getReport();
+	//proService.confirm(excelServer);
+
 	//write all data
-	QVariant var;
+	/*QVariant var;
 	excelServer->castSheetVector2Variant(var);
 	usedrange->setProperty("Value", var);
 
 	worrkbook->dynamicCall("Save()");
-	excelServer->freeExcel();
+	excelServer->freeExcel();*/
 	
 	return a.exec();
 }

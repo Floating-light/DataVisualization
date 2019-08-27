@@ -34,6 +34,11 @@
 #include <QtWidgets/QApplication>
 #include <QtCharts/QValueAxis>
 #include <QHeaderView>
+#include <QFileDialog>
+#include "data/ExcelDataServer.h"
+#include "service.h"
+#include <QMessageBox>
+
 QT_BEGIN_NAMESPACE
 class QComboBox;
 class QCheckBox;
@@ -58,8 +63,8 @@ typedef QList<DataList> DataTable;
 constexpr auto excelFilePath = "C:/fileds.xlsx";
 
 const std::vector<QString> selectHeaderName{QStringLiteral("事业部\n（住开/商开）"),
-    QStringLiteral("大区\n（南/中/北）"),QStringLiteral("业态"),
-	QStringLiteral("城市环线") };
+    QStringLiteral("大区\n（南/中/北）"),QStringLiteral("城市公司"),
+	QStringLiteral("项目名称"),QStringLiteral("项目编号"),QStringLiteral("业态"),QStringLiteral("城市环线") };
 
 class DataVisualization : public QMainWindow
 {
@@ -67,8 +72,16 @@ class DataVisualization : public QMainWindow
 
 public:
 	DataVisualization(QWidget *parent = Q_NULLPTR);
-
+	~DataVisualization();
 	std::vector<bool> rowChecked;
+	ExcelDataServer* excelServer;
+	QAxObject* worrkbook;
+	QAxObject* usedrange;
+
+	service proService;
+
+	int startrow ;
+	int endrow ;
 
 	void displayData(const QList<QList<QVariant>>& data,const  std::vector<QString>& headers);
 	void displayData(const std::vector<std::vector<QVariant>>& data,int beginRow ,int headerRow);
@@ -83,7 +96,8 @@ public:
 	ItemSelectCombox* createSelectCombox(const QString& headerName);
 	
 	void filterItem();
-
+	void initExportenu();
+	void doExport();
 	void displayScatterChart();
 	void displayLineChart();
 	void displayBarChart();
@@ -101,6 +115,7 @@ private:
 	QHBoxLayout* hLayout;
 
 	std::map<QString, std::vector<double>> scatterData;
+	QMap<QString, QStringList> report;
 
 	QChart* createLineChart() const;
 	QChart* createScatterChart();
@@ -112,7 +127,12 @@ private:
 	void updataChartData();
 	//return -1 if not find, begin with 0
 	int headerString2ColumnNumber(const QString& headerName);
+
+	void openFile();
+	void saveFile();
+	void excute();
+	void updataContent(const std::vector<std::vector<QVariant>>& data,
+		int beginRow, int headerRow);
 private slots:
 	void headerClicked(int);
-
 };

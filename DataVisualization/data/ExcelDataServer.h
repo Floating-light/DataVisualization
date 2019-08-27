@@ -87,6 +87,8 @@ public:
 		const QString& whereName, const QString& whereValue, QList<QList<QVariant>>& result);
 
 	void castSheetVector2Variant(QVariant& var);
+
+	void exportSheet(const QList<QList<QVariant>>& exportData,  const QString& sheetName);
 private:
 	QAxObject* excelApp;
 

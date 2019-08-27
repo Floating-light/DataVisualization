@@ -1,39 +1,127 @@
-#include "DataVisualization.h"
+ï»¿#include "DataVisualization.h"
 
-DataVisualization::DataVisualization(QWidget *parent)
-	: QMainWindow(parent)
+DataVisualization::DataVisualization(QWidget* parent)
+	: QMainWindow(parent),
+	excelServer(nullptr),
+	worrkbook(nullptr),
+	usedrange(nullptr),
+	startrow(4),
+    endrow(100)
 {
 	ui.setupUi(this);
 
 	tableWidget = new QTableWidget(this);
-
-
 	ui.viewLayout->addWidget(tableWidget);
-	/*hLayout = new QHBoxLayout();
-	hLayout->addWidget(tableWidget);
-	ui.centralWidget->setLayout(hLayout);*/
 
 	//chart view 
 	chartView = new QChartView(ui.centralWidget);
-	//chartView->setChart();
-	//ui.boxLayout->setDirection(QBoxLayout::LeftToRight);
 	ui.viewLayout->addWidget(chartView);
-	//hLayout->addWidget(chartView);
 
-	//connect(newAct, &QAction::triggered, this, &MainWindow::newFile);
-
-	//select event
-	connect(tableWidget->horizontalHeader(), SIGNAL(sectionClicked(int)),this, SLOT(headerClicked(int)));
-
-	connect(ui.actionOpenFile, &QAction::triggered, this, &DataVisualization::buttonPress);
-	//connect(ui.actionOpenChart, &QAction::triggered, this, &DataVisualization::buttonPress);
+	connect(ui.actionOpenFile, &QAction::triggered, this, &DataVisualization::openFile);
+	//connect(ui.actionOpenChart, &QAction::triggered, this, &DataVisualization::openFile);
 	connect(ui.histogramChart, &QAction::triggered, this, &DataVisualization::displayBarChart);
 	connect(ui.scatterChart, &QAction::triggered, this, &DataVisualization::displayScatterChart);
 	connect(ui.lineChart, &QAction::triggered, this, &DataVisualization::displayLineChart);
+	connect(ui.calculate, &QAction::triggered, this, &DataVisualization::excute);
+	connect(ui.saveFile, &QAction::triggered, this, &DataVisualization::saveFile);
 }
+
+DataVisualization::~DataVisualization()
+{
+	saveFile();
+	excelServer->freeExcel();
+}
+void DataVisualization::saveFile()
+{
+	if (excelServer != nullptr)
+	{
+		printf("Save excel file ...\n");
+		QVariant var;
+		excelServer->castSheetVector2Variant(var);
+		usedrange->setProperty("Value", var);
+
+		worrkbook->dynamicCall("Save()");
+		QMessageBox::about(this, QStringLiteral("æç¤º"), QStringLiteral("ä¿å­˜<font color='red'>å®Œæˆ</font>"));
+		printf("Save complete ...\n");
+	}
+}
+
+void DataVisualization::openFile()
+{
+	QString filePath = QFileDialog::getOpenFileName();
+	printf("file path : %s\n", qPrintable(filePath));
+
+	//excel server
+	excelServer = new ExcelDataServer();
+
+	worrkbook = excelServer->openExcelFile(filePath);
+	if (worrkbook == NULL)
+	{
+		printf("open file failed : %s, %p\n", qPrintable(filePath), worrkbook);
+		return;
+	}
+	else
+	{
+		printf("open success\n");
+	}
+	printf("Excel initialization...\n");
+	QAxObject* worksheets = worrkbook->querySubObject("WorkSheets");
+	QAxObject* sheet = excelServer->getSheet(worrkbook, 1);//updata work sheets.
+	//QAxObject* sheet = excelServer->getNamedSheet(worksheets,
+		//QString::fromLocal8Bit(std::string("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½").data()));
+	excelServer->setCurrentWorksheet(sheet);
+
+	//add a new sheet
+	//QAxObject * newSheets = excelServer->addSheet(excelServer->getCurrentWorkSheets(), QString("selectedTest"));
+	usedrange = sheet->querySubObject("UsedRange");
+	excelServer->setAllData(usedrange);
+	int columsNumber = excelServer->getColumsNumber();
+	int rowsNumber = excelServer->getRowsNumber();
+
+	startrow = 4;
+	endrow = rowsNumber;
+	//ï¿½ï¿½ï¿½ã¿ªÊ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	excelServer->setBeginEndRow(startrow, endrow);
+
+	//initialize calculate server
+	proService = service(startrow, endrow);
+	report = proService.getReport();
+	initExportenu();
+
+	QVariantList resultColum3;
+	excelServer->getRowData(sheet, 3, resultColum3);//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ğµï¿½Öµ
+
+	printf("Excel initialization complete\n");
+	printf("Analysis data...\n");
+	displayData(excelServer->sheetContent, 3, 2);
+	printf("Complete.\n");
+	QMessageBox::about(this, QStringLiteral("æç¤º"), QStringLiteral("æ‰“å¼€<font color='red'>æˆåŠŸ</font>"));
+}
+
+void DataVisualization::excute()
+{
+	if (excelServer == nullptr)
+	{
+		printf("plase open a excel file first.\n");
+		return;
+	}
+	printf("Excute calculator... ...\n");
+	
+    proService.confirm(excelServer);
+	printf("Complete...\n");
+	printf("updata table view ...\n");
+	updataContent(excelServer->sheetContent, 3, 2);
+	printf("updata complete...\n");
+	QMessageBox::about(this, QStringLiteral("æç¤º"), QStringLiteral("è®¡ç®—<font color='red'>å®Œæˆ</font>"));
+}
+
 
 QChart* DataVisualization::createLineChart() const
 {
+	QString content = ui.chartLineEdit->text();
+	content.replace("ï¼Œ", ",");
+	QStringList stringList = content.split(',');
+
 	int maxHoriz = INT_MIN;
 	int minHoriz = INT_MAX;
 	int maxVert = INT_MIN;
@@ -56,7 +144,7 @@ QChart* DataVisualization::createLineChart() const
 			series->append(point);
 		}
 			
-		series->setName(name + QString::number(nameIndex));
+		series->setName(stringList[nameIndex]);
 		nameIndex++;
 		chart->addSeries(series);
 	}
@@ -122,7 +210,7 @@ QChart* DataVisualization::createScatterChartTwo()
 	Q_ASSERT(m_dataTable.size() > 1);
 	// scatter chart
 	QChart* chart = new QChart();
-	chart->setTitle(QStringLiteral("É¢µãÍ¼"));
+	chart->setTitle(QStringLiteral("æ•£ç‚¹å›¾"));
 
 	DataList dataList_x = m_dataTable[0];
 	DataList dataList_y = m_dataTable[1];
@@ -133,7 +221,10 @@ QChart* DataVisualization::createScatterChartTwo()
 		dataList_x.at(i).first.y();
 		series->append(QPointF(dataList_x.at(i).first.y(), dataList_y.at(i).first.y()));
 	}
-	series->setName(QStringLiteral("É¢µã"));
+	QString content = ui.chartLineEdit->text();
+	content.replace("ï¼Œ", ",");
+	QStringList stringList = content.split(',');
+	series->setName(stringList[1] + ":" +stringList[0]);
 	chart->addSeries(series);
 
 	chart->createDefaultAxes();
@@ -148,13 +239,17 @@ QChart* DataVisualization::createScatterChartTwo()
 
 QChart* DataVisualization::createBarChart()
 {
+	QString content = ui.chartLineEdit->text();
+	content.replace("ï¼Œ", ",");
+	QStringList stringList = content.split(',');
+
 	QChart* chart = new QChart();
 	chart->setTitle("Bar chart");
 	int valueMax = std::numeric_limits<int>::min();
 	int valueMin = std::numeric_limits<int>::max();
 	QStackedBarSeries* series = new QStackedBarSeries(chart);
 	for (int i(0); i < m_dataTable.count(); i++) {
-		QBarSet* set = new QBarSet("Bar set " + QString::number(i));
+		QBarSet* set = new QBarSet(stringList[i]);
 		for (const Data& data : m_dataTable[i])
 		{
 			*set << data.first.y();
@@ -248,7 +343,7 @@ void DataVisualization::addData(int column)
 void DataVisualization::addSelectedRowColumData(int column)
 {
 	DataList dataList;
-
+	
 	for (int i = 1; i < tableWidget->rowCount(); i++)
 	{
 		if (tableWidget->isRowHidden(i) || !rowChecked[i])
@@ -271,7 +366,7 @@ void DataVisualization::addSelectedRowColumData(int column)
 void DataVisualization::updataChartData()
 {
 	QString content = ui.chartLineEdit->text();
-	content.replace("£¬", ",");
+	content.replace("ï¼Œ", ",");
 	QStringList stringList = content.split(',');
 	for (QString s : stringList)
 	{
@@ -311,7 +406,7 @@ void DataVisualization::displayData(const QList<QList<QVariant>>& data,
 	tableWidget->setHorizontalHeaderLabels(headers);
 	for (int i = 0; i < data.size(); i++)
 	{
-		QList<QVariant> allEnvDataList_i = data[i];//µÚiĞĞµÄÊı¾İ
+		QList<QVariant> allEnvDataList_i = data[i];//ç¬¬iè¡Œçš„æ•°æ®
 		//printf("\n");
 		for (int j = 0; j < allEnvDataList_i.size(); j++)
 		{
@@ -319,6 +414,31 @@ void DataVisualization::displayData(const QList<QList<QVariant>>& data,
 			//printf("%s, ", qPrintable(tempvalue));
 			QTableWidgetItem* item = new QTableWidgetItem(tempvalue);
 			tableWidget->setItem(i, j, item);
+		}
+	}
+}
+
+void DataVisualization::updataContent(const std::vector<std::vector<QVariant>>& data,
+	int beginRow, int headerRow)
+{
+	int rows = data.size() - beginRow + 1;
+	int columns = data.at(0).size() + 1;
+
+	for (int i = beginRow; i < data.size(); i++)
+		//for (int i = beginRow; i < beginRow + 20; i++)
+	{
+		std::vector<QVariant>  allEnvDataList_i = data[i];//ç¬¬iè¡Œçš„æ•°æ®
+
+		for (int j = 0; j < allEnvDataList_i.size(); j++)
+		{
+			QString tempvalue = allEnvDataList_i[j].toString();
+			//printf("%s, ", qPrintable(tempvalue));
+			auto item = tableWidget->item(i - beginRow + 1, j + 1);
+			if (item == nullptr)
+			{
+				continue;
+			}
+			item->setText(tempvalue);
 		}
 	}
 }
@@ -352,21 +472,21 @@ void DataVisualization::displayData(const std::vector<std::vector<QVariant>>& da
 	for (int i = beginRow; i < data.size(); i++)
 	//for (int i = beginRow; i < beginRow + 20; i++)
 	{
-	    std::vector<QVariant>  allEnvDataList_i = data[i];//µÚiĞĞµÄÊı¾İ
+	    std::vector<QVariant>  allEnvDataList_i = data[i];//ç¬¬iè¡Œçš„æ•°æ®
 		// set check box
 		QCheckBox* CheckBox = new QCheckBox(tableWidget);
 		CheckBox->setFixedSize(QSize(39,35));
 		CheckBox->setCheckState(Qt::Checked);
 		CheckBox->setWhatsThis(QString::number(i - beginRow));
 		connect(CheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkBoxchange(int)));
-		tableWidget->setCellWidget(i - beginRow, 0, CheckBox);//rowĞĞ£¬0ÁĞ
+		tableWidget->setCellWidget(i - beginRow, 0, CheckBox);//rowè¡Œï¼Œ0åˆ—
 
-		for (int j = 1; j < allEnvDataList_i.size(); j++)
+		for (int j = 0; j < allEnvDataList_i.size(); j++)
 		{
 			QString tempvalue = allEnvDataList_i[j].toString();
 			//printf("%s, ", qPrintable(tempvalue));
 			QTableWidgetItem* item = new QTableWidgetItem(tempvalue);
-			tableWidget->setItem(i - beginRow + 1, j, item);
+			tableWidget->setItem(i - beginRow + 1, j + 1, item);
 		}
 	}
     //create combobox
@@ -374,7 +494,7 @@ void DataVisualization::displayData(const std::vector<std::vector<QVariant>>& da
 	{
 		int column = headerString2ColumnNumber(name);
 		ItemSelectCombox* combo = createSelectCombox(name);
-		tableWidget->setCellWidget(0, column, combo->content);//rowĞĞ£¬0ÁĞ
+		tableWidget->setCellWidget(0, column, combo->content);//rowè¡Œï¼Œ0åˆ—
 	}
 }
 
@@ -396,7 +516,7 @@ std::vector<int>  DataVisualization::getSelectRowNumber(const std::vector<QStrin
 	std::vector<int> tragetRowNumberCount(tableWidget->rowCount(), 0);
 	for (int i = 0; i < headType.size(); ++i)
 	{
-		if (traget[i] == QStringLiteral("È«²¿"))
+		if (traget[i] == QStringLiteral("å…¨éƒ¨"))
 		{
 			--tragetNumber;
 			continue;
@@ -453,14 +573,14 @@ void DataVisualization::checkBoxchange(int state)
 
 void DataVisualization::buttonPress()
 {
-	/*std::vector<int> result = getSelectRowNumber(std::vector<QString>{QString::fromLocal8Bit(std::string("ÓªÏú²ÙÅÌ·½").data())},
-		std::vector<QString>{QString::fromLocal8Bit(std::string("ĞÂ³Ç").data())});
+	/*std::vector<int> result = getSelectRowNumber(std::vector<QString>{QString::fromLocal8Bit(std::string("è¥é”€æ“ç›˜æ–¹").data())},
+		std::vector<QString>{QString::fromLocal8Bit(std::string("æ–°åŸ").data())});
 	displaySelectRow(result);*/
 	/*if (count == 0)
 	{
-		addSelectCombox(QStringLiteral("ÊÂÒµ²¿\n£¨×¡¿ª/ÉÌ¿ª£©"));
-		addSelectCombox(QStringLiteral("ÓªÏú²ÙÅÌ·½"));
-		addSelectCombox(QStringLiteral("³ÇÊĞ»·Ïß"));
+		addSelectCombox(QStringLiteral("äº‹ä¸šéƒ¨\nï¼ˆä½å¼€/å•†å¼€ï¼‰"));
+		addSelectCombox(QStringLiteral("è¥é”€æ“ç›˜æ–¹"));
+		addSelectCombox(QStringLiteral("åŸå¸‚ç¯çº¿"));
 	}
 	else
 	{
@@ -468,8 +588,8 @@ void DataVisualization::buttonPress()
 	}
 	++count;*/
 	/*scatterData = std::map<QString, std::vector<double>>
-	{ {QStringLiteral("xÖá"),std::vector<double >{2, 3,4,5,6.5,1.2,2.6,7.5}},
-	  {QStringLiteral("yÖá"),std::vector<double >{3, 1.2,4.7,5.3,6.5,1.2,7.8,7.5}}
+	{ {QStringLiteral("xè½´"),std::vector<double >{2, 3,4,5,6.5,1.2,2.6,7.5}},
+	  {QStringLiteral("yè½´"),std::vector<double >{3, 1.2,4.7,5.3,6.5,1.2,7.8,7.5}}
 	};*/
 	
 	//QChart* currentChart = createScatterChart();
@@ -507,7 +627,7 @@ void DataVisualization::addSelectCombox(const QString& headerName)
 	ItemSelectCombox* view = new ItemSelectCombox();
 	view->label = new QLabel(headerName);
 	view->content = new QComboBox();
-	view->content->addItem(QStringLiteral("È«²¿"));
+	view->content->addItem(QStringLiteral("å…¨éƒ¨"));
 	for (const QString& name : uniqueNames)
 	{
 		view->content->addItem(name);
@@ -527,7 +647,7 @@ ItemSelectCombox* DataVisualization::createSelectCombox(const QString& headerNam
 	QComboBox* cccombox = new QComboBox();
 	view->content = cccombox;
 	
-	view->content->addItem(QStringLiteral("È«²¿"));
+	view->content->addItem(QStringLiteral("å…¨éƒ¨"));
 	for (const QString& name : uniqueNames)
 	{
 		view->content->addItem(name);
@@ -559,4 +679,50 @@ void DataVisualization::filterItem()
 
 	std::vector<int> rows = getSelectRowNumber(headerName, filterName);
 	displaySelectRow(rows);
+}
+
+void DataVisualization::initExportenu()
+{
+	auto iter = report.cbegin();
+
+	while(iter != report.cend())
+	{
+		QAction* exportAction = new QAction();
+		exportAction->setText(iter.key());
+		ui.menuExport->addAction(exportAction);
+		ui.exportActions.push_back(exportAction);
+		connect(exportAction, &QAction::triggered, this, &DataVisualization::doExport);
+		++iter;
+	}
+}
+
+void DataVisualization::doExport()
+{
+	QAction* action = (QAction*)sender();
+	printf("Export something...%s\n", qPrintable(action->text()));
+	QStringList exportColumnList = report[action->text()];
+	QList<QList<QVariant>> exportData;
+
+	QList<QVariant> currentRow;
+	for (auto s : exportColumnList)
+	{
+		currentRow << QVariant(s);
+	}
+	exportData << currentRow;
+
+	std::vector<std::vector<QVariant>>& allContent = excelServer->sheetContent;
+	for (int i = startrow - 1; i < allContent.size(); ++i)
+	{
+		if (tableWidget->isRowHidden(i - startrow + 2)||!rowChecked[i - startrow + 2])
+			continue;
+		QList<QVariant> currentRow;
+
+		for (QString columnName : exportColumnList)
+		{
+			currentRow << allContent[i][excelServer->nameToSubScript[columnName]];
+		}
+		exportData << currentRow;
+	}
+
+	excelServer->exportSheet(exportData, action->text());
 }
