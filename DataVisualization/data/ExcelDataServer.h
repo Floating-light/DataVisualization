@@ -4,7 +4,7 @@
 #include "data/DataServer.h"
 #include <QVector>
 #include <QChar>
-
+#include <QMessageBox>
 class ExcelDataServer : public DataServer
 {
 public:
@@ -89,6 +89,10 @@ public:
 	void castSheetVector2Variant(QVariant& var);
 
 	void exportSheet(const QList<QList<QVariant>>& exportData,  const QString& sheetName);
+
+	void templateExport(const QString& templatePath,  int headerRow);
+	void getColumnSpecifyData(const QVariantList& exportHeader, QList<QList<QVariant>>& exportData);
+	QList<QVariant> getInsertRow(const std::vector<QString>& cache, int changedIndex, int columnNumber);
 private:
 	QAxObject* excelApp;
 
