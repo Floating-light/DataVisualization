@@ -610,7 +610,11 @@ QVariant ExcelDataServer::getCellData(const QString& name, int row)
 
 	auto iter = nameToSubScript.find(name);
 	if (iter == nameToSubScript.end())
+	{
+		printf("--------->>>Can not find field : %s\n", qPrintable(name));
 		return QVariant();
+	}
+		
 	return sheetContent[row - 1][iter->second];
 	/*QVariantList rowsData = allData.toList();
 	QVariantList tragetRow = rowsData.at(row-1).toList();
@@ -650,7 +654,7 @@ void ExcelDataServer::writedata(QVariant data, QString c, int r)
 	auto iter = nameToSubScript.find(c);
 	if (iter == nameToSubScript.end())
 	{
-		printf("can not find column : %s\n", qPrintable(c));
+		printf("can not find cell £¨column£º%s, row: %s£©\n", qPrintable(c), r);
 		return;
 	}
 	sheetContent[r - 1][iter->second] = data;

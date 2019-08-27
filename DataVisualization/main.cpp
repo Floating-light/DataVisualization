@@ -76,13 +76,18 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	ExcelDataServer* excelServer = new ExcelDataServer();
 	//printf("open file : %s\n", qPrintable(excelPath));
+	printf("Open file : %s\n", qPrintable(filepath));
 	QAxObject* worrkbook = excelServer->openExcelFile(filepath);
 	if (worrkbook == NULL)
 		printf("open file failed : %s, %p\n", qPrintable(filepath), worrkbook);
+	else
+	{
+		printf("open success\n");
+	}
 	QAxObject* worksheets = worrkbook->querySubObject("WorkSheets");
 	QAxObject * sheet = excelServer->getSheet(worrkbook, 1);//updata work sheets.
 	//QAxObject* sheet = excelServer->getNamedSheet(worksheets,
-		//QString::fromLocal8Bit(std::string("²âÊÔÊý¾Ý").data()));
+		//QString::fromLocal8Bit(std::string("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½").data()));
 	excelServer->setCurrentWorksheet(sheet);
 
 	//add a new sheet
@@ -94,36 +99,61 @@ int main(int argc, char *argv[])
 
 	int startrow = 4;
 	int endrow = rowsNumber;
-	//¼ÆËã¿ªÊ¼¡¢½áÊøÐÐ
+	//ï¿½ï¿½ï¿½ã¿ªÊ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	excelServer->setBeginEndRow(startrow , endrow);
 
 	QVariantList resultColum3;
-	excelServer->getRowData(sheet, 3, resultColum3);//»ñÈ¡µÚÈýÐÐµÄÖµ
+	excelServer->getRowData(sheet, 3, resultColum3);//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Öµ
 
-	/*QAxObject* cellA23 = sheet->querySubObject("Range(QVariant, QVariant)", "A23");
-	QVariant resA23 = cellA23->property("Value");
-	printf("data : %s\n", qPrintable(resA23.toString()));*/
-	/******************************************************************/
-	/*QList<QList<QVariant>> result;
-	std::vector<QString> selected{
-		QString::fromLocal8Bit(std::string("ÓªÏú²ÙÅÌ·½").data()),
-			QString::fromLocal8Bit(std::string("Ê×¿ªÈÕÆÚ").data()),
-			QString::fromLocal8Bit(std::string("³ÇÊÐ»·Ïß").data()) };
-
-	excelServer->selectWhere(selected,
-		QString::fromLocal8Bit(std::string("¹ÉÈ¨±ÈÀý").data()),
-		QString::fromLocal8Bit(std::string("13").data()), result);*/
-	/*result.push_front(QList<QVariant>{
-		QString::fromLocal8Bit(std::string("ÓªÏú²ÙÅÌ·½").data()),
-		QString::fromLocal8Bit(std::string("Ê×¿ªÈÕÆÚ").data()),
-		QString::fromLocal8Bit(std::string("³ÇÊÐ»·Ïß").data())});*/
-
-	/*DataVisualization widget;
+	DataVisualization widget;
 	widget.displayData(excelServer->sheetContent, 3, 2);
-	widget.show();*/
+	widget.show();
 
-	//excelServer->writeArea(newSheets, result);
 	/******************************************************************/
+	//core calculate 
+	/*calHistary(QString::fromLocal8Bit(std::string("./input/1ï¿½ï¿½Ê·ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½.txt").data()), excelServer);
+	
+	calCurrent(QString::fromLocal8Bit(std::string("./input/2ï¿½ï¿½Ç°ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½.txt").data()), excelServer);
+	
+	calYear(QString::fromLocal8Bit(std::string("./input/3ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½.txt").data()), excelServer);
+
+	calHistary(QString::fromLocal8Bit(std::string("./input/4ï¿½ï¿½Ê·ï¿½ï¿½-ï¿½ï¿½ï¿½.txt").data()), excelServer);
+
+	calCurrent(QString::fromLocal8Bit(std::string("./input/5ï¿½ï¿½Ç°ï¿½ï¿½-ï¿½ï¿½ï¿½.txt").data()), excelServer);
+
+	//6ï¿½ï¿½ï¿½Ó¹ï¿½Ê½-ï¿½ï¿½ï¿½.txt
+	//ï¿½ï¿½ï¿½Ç©Ô¼ï¿½ï¿½É£ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½æ£©
+	yearPredict3(excelServer);
+	//ï¿½ï¿½ï¿½È«ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½æ£©
+	yearPredict1(excelServer);
+	//ï¿½ï¿½ï¿½È¨ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½æ£©
+	yearPredict5(excelServer);
+	//ï¿½Ûºï¿½È«ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	predictcurrentMonth3(excelServer);
+	//ï¿½Ûºï¿½È¨ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	predictcurrentMonth4(excelServer);
+
+	//7ï¿½ï¿½ï¿½Ó¹ï¿½Ê½ - Ô¤ï¿½Ð¼ï¿½ï¿½ï¿½.txt
+	//ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½
+	predictcurrentMonth1(excelServer);
+	//Ô¤ï¿½ï¿½
+	predictcurrentMonth2(excelServer);
+
+	calCurrent(QString::fromLocal8Bit(std::string("./input/8ï¿½ï¿½Ç°ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½.txt").data()), excelServer);
+	calCurrent(QString::fromLocal8Bit(std::string("./input/9ï¿½ï¿½Ç°ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½.txt").data()), excelServer);
+	
+	//ï¿½ï¿½ï¿½Ç©Ô¼ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½Æ°æ£©
+	yearPredict4(excelServer);
+	//ï¿½ï¿½ï¿½È«ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½Æ°æ£©
+	yearPredict2(excelServer);
+	//ï¿½ï¿½ï¿½È¨ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½Æ°æ£©
+	yearPredict6(excelServer);
+
+	calYear(QString::fromLocal8Bit(std::string("./input/11ï¿½ï¿½ï¿½-ï¿½ï¿½ï¿½ï¿½.txt").data()), excelServer);*/
+	
+	//*************************************************************************************************
+
+
 	service proService(startrow, endrow);
 	QMap<QString, QStringList> report = proService.getReport();
 	proService.confirm(excelServer);
@@ -134,8 +164,8 @@ int main(int argc, char *argv[])
 
 	worrkbook->dynamicCall("Save()");
 	excelServer->freeExcel();
-	a.exit();
-	return 0;
+	
+	return a.exec();
 }
 
 

@@ -7,181 +7,30 @@ DataVisualization::DataVisualization(QWidget *parent)
 
 	tableWidget = new QTableWidget(this);
 
-	hLayout = new QHBoxLayout();
+
+	ui.viewLayout->addWidget(tableWidget);
+	/*hLayout = new QHBoxLayout();
 	hLayout->addWidget(tableWidget);
-	ui.centralWidget->setLayout(hLayout);
+	ui.centralWidget->setLayout(hLayout);*/
 
 	//chart view 
-	chartView = new QChartView(this);
+	chartView = new QChartView(ui.centralWidget);
 	//chartView->setChart();
-	hLayout->addWidget(chartView);
+	//ui.boxLayout->setDirection(QBoxLayout::LeftToRight);
+	ui.viewLayout->addWidget(chartView);
+	//hLayout->addWidget(chartView);
+
+	//connect(newAct, &QAction::triggered, this, &MainWindow::newFile);
 
 	//select event
-
 	connect(tableWidget->horizontalHeader(), SIGNAL(sectionClicked(int)),this, SLOT(headerClicked(int)));
+
+	connect(ui.actionOpenFile, &QAction::triggered, this, &DataVisualization::buttonPress);
+	//connect(ui.actionOpenChart, &QAction::triggered, this, &DataVisualization::buttonPress);
+	connect(ui.histogramChart, &QAction::triggered, this, &DataVisualization::displayBarChart);
+	connect(ui.scatterChart, &QAction::triggered, this, &DataVisualization::displayScatterChart);
+	connect(ui.lineChart, &QAction::triggered, this, &DataVisualization::displayLineChart);
 }
-
-
-
-void DataVisualization::Read_Excel(const QString PATH, const QString FILENAME,
-	const int SHEETNUM, const QString RANGE, const int INVALIDROW, 
-	const int TOTALCOLNUM, std::vector<QString>& RESULT)
-//参数解释：路径，文件名，第几个sheet表，读取范围（格式为A1:B），无效的行数（比如不想要的title等）
-//，读取范围的总列数，返回一个QString的vector。
-{
-	QString pathandfilename = excelFilePath;
-	QAxObject excel("Excel.Application");
-	excel.setProperty("Visible", false); //隐藏打开的excel文件界面
-	QAxObject* workbooks = excel.querySubObject("WorkBooks");
-	QAxObject* workbook = workbooks->querySubObject("Open(QString, QVariant)", pathandfilename); //打开文件
-	QAxObject* worksheet = workbook->querySubObject("WorkSheets(int)", SHEETNUM); //访问第SHEETNUM个工作表
-	QAxObject* usedrange = worksheet->querySubObject("UsedRange");
-	QAxObject* rows = usedrange->querySubObject("Rows");
-	int rownum = rows->property("Count").toInt(); //获取行数
-
-	QString Range = RANGE + QString::number(rownum); 
-	QAxObject* allEnvData = worksheet->querySubObject("Range(QString)", Range); //读取范围
-	//QAxObject* allEnvData = worksheet->querySubObject("Range(QString)", "A1:B2"); //读取范围
-	QVariant allEnvDataQVariant = allEnvData->property("Value");//读取所有的值
-
-	QVariantList allEnvDataList = allEnvDataQVariant.toList();//转换为list
-
-	for (int i = 0; i < rownum - INVALIDROW; i++)
-	{
-		QVariantList allEnvDataList_i = allEnvDataList[i].toList();//第i行的数据
-		printf("\n");
-		for (int j = 0; j < TOTALCOLNUM; j++)
-		{
-			QString tempvalue = allEnvDataList_i[j].toString();
-			printf("%s, ", qPrintable(tempvalue));
-			RESULT.push_back(tempvalue);
-		}
-	}
-	workbooks->dynamicCall("Close()");
-	excel.dynamicCall("Quit()");
-}
-
-void DataVisualization::readAll(const QString Path)
-{
-	QString pathandfilename = Path;
-	QAxObject excel("Excel.Application");
-	excel.setProperty("Visible", false); //隐藏打开的excel文件界面
-	QAxObject* workbooks = excel.querySubObject("WorkBooks");//可打开多个excel
-
-	QAxObject* workbook = workbooks->querySubObject("Open(QString, QVariant)", pathandfilename); //打开文件
-	QAxObject* worksheet = workbook->querySubObject("WorkSheets(int)", 1); //访问第SHEETNUM个工作表
-	
-	QAxObject* cellA = worksheet->querySubObject("Range(QVariant, QVariant)", "A8");
-	cellA->dynamicCall("SetValue(const QVariant&)", QVariant("1+1"));//设置单元格的值
-	
-	//pWorkbook->dynamicCall("SaveAs(QString)", "E:\\456.xlsx");另存为
-
-	QAxObject* usedrange = worksheet->querySubObject("UsedRange");//所有数据
-
-	QAxObject* rows = usedrange->querySubObject("Rows");
-    int rownum = rows->property("Count").toInt(); //获取行数Columns
-
-    QAxObject* cols = usedrange->querySubObject("Columns");
-    int columns = cols->property("Count").toInt(); //获取行数Columns
-
-	QVariant allEnvDataQVariant = usedrange->dynamicCall("Value");//->dynamicCall("Value");
-	QVariantList allEnvDataList = allEnvDataQVariant.toList();//转换为list
-
-	
-	tableWidget->setRowCount(rownum);
-	tableWidget->setColumnCount(columns);
-	QStringList headers;
-	for (int c = 0; c < columns; ++c)
-	{
-		headers << QString(char(65 + c));
-	}
-
-	tableWidget->setHorizontalHeaderLabels(headers);
-	for (int i = 0; i < allEnvDataList.size(); i++)
-	{
-		QVariantList allEnvDataList_i = allEnvDataList[i].toList();//第i行的数据
-		//printf("\n");
-		for (int j = 0; j < allEnvDataList_i.size(); j++)
-		{
-			QString tempvalue = allEnvDataList_i[j].toString();
-			//printf("%s, ", qPrintable(tempvalue));
-			QTableWidgetItem* item = new QTableWidgetItem(tempvalue);
-			tableWidget->setItem(i, j, item);
-		}
-	}
-
-	workbooks->dynamicCall("Close()");
-	excel.dynamicCall("Quit()");
-}
-
-//动态加载excel内容
-void DataVisualization::import()
-{
-
-	QAxObject* excel = new QAxObject("Excel.Application");
-	excel->setProperty("Visible", false);
-	QAxObject* workbooks = excel->querySubObject("WorkBooks");
-	workbooks->dynamicCall("Open (const QString&)", excelFilePath);
-	QAxObject* workbook = excel->querySubObject("ActiveWorkBook");//获取活动工作簿
-
-	QAxObject* worksheets = workbook->querySubObject("Sheets");
-
-	int sheetcount = worksheets->property("Count").toInt();  //获取工作表数目
-	int * rowNum = new int[sheetcount];
-	int *colNum = new int[sheetcount];
-	QTableWidget** table = new QTableWidget*[sheetcount];
-	QString* worksheetname = new QString[sheetcount];
-	for (int k = 0; k < sheetcount; k++) {
-		table[k] = new QTableWidget;
-
-		//获得第一张excel表格
-		QAxObject* worksheet = workbook->querySubObject("Worksheets(int)", k + 1);
-		QAxObject* range = worksheet->querySubObject("UsedRange");
-
-		worksheetname[k] = worksheet->property("Name").toString();
-
-		//获得excel的行列数
-		QAxObject* rows = range->querySubObject("Rows");
-		rowNum[k] = rows->property("Count").toInt();
-
-		QAxObject* columns = range->querySubObject("Columns");
-		colNum[k] = columns->property("Count").toInt();
-
-		//读取excel并显示到表格上
-		QString txt;
-		table[k]->setRowCount(rowNum[k]);
-		table[k]->setColumnCount(colNum[k]);
-		QVariant cell = range->dynamicCall("Value");
-		QVariantList row = cell.value<QVariantList>();
-		for (int i = 0; i != row.size(); i++) {
-			QVariantList col = row[i].value<QVariantList>();
-			for (int j = 0; j != col.size(); j++) {
-				txt = col[j].toString();
-				QTableWidgetItem* item = new QTableWidgetItem(txt);
-				table[k]->setItem(i, j, item);
-				//数据映射到结构体中
-			}
-		}
-
-		//不可编辑
-		table[k]->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		//tabWidget->addTab(table[k], worksheetname[k]);
-	}
-	//currentsheet = 0;
-
-	//关闭并退出
-	workbook->dynamicCall("Close(Boolean)", false);
-	excel->dynamicCall("Quit(void)");
-}
-
-//QAxObject* rows = usedrange->querySubObject("Rows");
-//int rownum = rows->property("Count").toInt(); //获取行数Columns
-//
-//QAxObject* cols = usedrange->querySubObject("Columns");
-//int columns = cols->property("Count").toInt(); //获取行数Columns
-//
-//QVariant allEnvDataQVariant = usedrange->dynamicCall("Value");//->dynamicCall("Value");
-////QVariant allEnvDataQVariant = allEnvData->property("Value");//读取所有的值
 
 QChart* DataVisualization::createLineChart() const
 {
@@ -228,6 +77,137 @@ QChart* DataVisualization::createLineChart() const
 	return chart;
 }
 
+QChart* DataVisualization::createScatterChart()
+{
+	int maxHoriz = INT_MIN;
+	int minHoriz = INT_MAX;
+	int maxVert = INT_MIN;
+	int minVert = INT_MAX;
+	// scatter chart  scatterData
+	QChart* chart = new QChart();
+	chart->setTitle("Scatter chart");
+	QString name("Series ");
+	int nameIndex = 0;
+	auto iter1 = scatterData.cbegin();
+	auto iter2 = ++scatterData.cbegin();
+	std::vector<double> vec1 = iter1->second;
+	std::vector<double> vec2 = iter2->second;
+	QScatterSeries* series = new QScatterSeries(chart);
+	for (int i = 0; i < vec1.size(); ++i)
+	{
+		series->append(QPointF(vec1[i], vec2[i]));
+		maxHoriz < vec1[i] ? (maxHoriz = vec1[i]) : (minHoriz > vec1[i] ? minHoriz = vec1[i] : true);
+		maxVert < vec2[i] ?( maxVert = vec2[i]) : (minVert > vec2[i] ? minVert = vec2[i] : true);
+	}
+	series->setName(iter2->first + ":" + iter1->first);
+	chart->addSeries(series);
+
+	chart->createDefaultAxes();
+	chart->axes(Qt::Horizontal).first()->setRange(minHoriz - 1, maxHoriz + 1);
+	chart->axes(Qt::Vertical).first()->setRange(minVert - 1, maxVert + 1);
+	// Add space to label to add space between labels and axis
+	QValueAxis * axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	Q_ASSERT(axisY);
+	axisY->setLabelFormat("%.1f  ");
+
+	QValueAxis* axisX = qobject_cast<QValueAxis*>(chart->axes(Qt::Horizontal).first());
+	Q_ASSERT(axisX);
+	axisX->setLabelFormat("%.1f  ");
+	return chart;
+}
+
+QChart* DataVisualization::createScatterChartTwo()
+{
+	updataChartData();
+	Q_ASSERT(m_dataTable.size() > 1);
+	// scatter chart
+	QChart* chart = new QChart();
+	chart->setTitle(QStringLiteral("散点图"));
+
+	DataList dataList_x = m_dataTable[0];
+	DataList dataList_y = m_dataTable[1];
+
+	QScatterSeries* series = new QScatterSeries(chart);
+	for (int i = 0; i < dataList_x.size(); ++i)
+	{
+		dataList_x.at(i).first.y();
+		series->append(QPointF(dataList_x.at(i).first.y(), dataList_y.at(i).first.y()));
+	}
+	series->setName(QStringLiteral("散点"));
+	chart->addSeries(series);
+
+	chart->createDefaultAxes();
+	chart->axes(Qt::Horizontal).first()->setRange(-100, 100);
+	chart->axes(Qt::Vertical).first()->setRange(-100, 100);
+	// Add space to label to add space between labels and axis
+	QValueAxis * axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	Q_ASSERT(axisY);
+	axisY->setLabelFormat("%.1f  ");
+	return chart;
+}
+
+QChart* DataVisualization::createBarChart()
+{
+	QChart* chart = new QChart();
+	chart->setTitle("Bar chart");
+	int valueMax = std::numeric_limits<int>::min();
+	int valueMin = std::numeric_limits<int>::max();
+	QStackedBarSeries* series = new QStackedBarSeries(chart);
+	for (int i(0); i < m_dataTable.count(); i++) {
+		QBarSet* set = new QBarSet("Bar set " + QString::number(i));
+		for (const Data& data : m_dataTable[i])
+		{
+			*set << data.first.y();
+			data.first.y() > valueMax ? (valueMax = data.first.y()) : true;
+			data.first.y() < valueMin ? (valueMin = data.first.y()) : true;
+		}
+		series->append(set);
+	}
+	chart->addSeries(series);
+
+	chart->createDefaultAxes();
+	chart->axes(Qt::Vertical).first()->setRange(valueMin, valueMax*2+10);
+	// Add space to label to add space between labels and axis
+	QValueAxis * axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
+	Q_ASSERT(axisY);
+	axisY->setLabelFormat("%.1f  ");
+
+	return chart;
+}
+
+void DataVisualization::displayLineChart()
+{
+	m_dataTable.clear();
+	updataChartData();
+	QChart* currentChart = createLineChart();
+	QChart* previous = chartView->chart();
+	chartView->setChart(currentChart);
+	if (previous)
+		delete previous;
+}
+
+void DataVisualization::displayScatterChart()
+{
+	m_dataTable.clear();
+	updataChartData();
+	QChart * currentChart = createScatterChartTwo();
+	QChart* previous = chartView->chart();
+	chartView->setChart(currentChart);
+	if (previous)
+		delete previous;
+}
+
+void DataVisualization::displayBarChart()
+{
+	m_dataTable.clear();
+	updataChartData();
+	QChart* currentChart = createBarChart();
+	QChart* previous = chartView->chart();
+	chartView->setChart(currentChart);
+	if (previous)
+		delete previous;
+}
+
 DataTable DataVisualization::generateRandomData(int listCount, int valueMax, int valueCount) const
 {
 	DataTable dataTable;
@@ -251,12 +231,58 @@ DataTable DataVisualization::generateRandomData(int listCount, int valueMax, int
 void DataVisualization::addData(int column)
 {
 	DataList dataList;
+
 	for (int i = 0; i < tableWidget->rowCount(); i++)
 	{
-		dataList << Data(QPointF(i, tableWidget->item(i, column)->text().toDouble()),
+		auto item = tableWidget->item(i, column);
+		if (item == nullptr)
+		{
+			continue;
+		}
+		dataList << Data(QPointF(i, item->text().toDouble()),
 			QString::number(column) + ":" + QString::number(i));
 	}
 	m_dataTable << dataList;
+}
+
+void DataVisualization::addSelectedRowColumData(int column)
+{
+	DataList dataList;
+
+	for (int i = 1; i < tableWidget->rowCount(); i++)
+	{
+		if (tableWidget->isRowHidden(i) || !rowChecked[i])
+		{
+			continue;
+		}
+		auto item = tableWidget->item(i, column);
+		if (item == nullptr)
+		{
+			dataList << Data(QPointF(i, 0),
+				QString::number(column) + ":" + QString::number(i));
+			continue;
+		}
+		dataList << Data(QPointF(i, item->text().toDouble()),
+			QString::number(column) + ":" + QString::number(i));
+	}
+	m_dataTable << dataList;
+}
+
+void DataVisualization::updataChartData()
+{
+	QString content = ui.chartLineEdit->text();
+	content.replace("，", ",");
+	QStringList stringList = content.split(',');
+	for (QString s : stringList)
+	{
+		int column = headerString2ColumnNumber(s);
+		if (column == -1)
+		{
+			printf("can't find column : %s\n", qPrintable(s));
+			continue;
+		}
+		addSelectedRowColumData(column);
+	}
 }
 
 void DataVisualization::headerClicked(int i ) {
@@ -268,38 +294,8 @@ void DataVisualization::headerClicked(int i ) {
 	    delete previous;
 }
 
-//get a work book bind with a excel file.
-QAxObject* DataVisualization::getWorkBooks(const QString& excelPath)
-{
-	QString pathandfilename = excelPath;
-
-	excel = new  QAxObject("Excel.Application");
-
-	excel->setProperty("Visible", false); //隐藏打开的excel文件界面
-	QAxObject* workbooks = excel->querySubObject("WorkBooks");//可打开多个excel
-
-	return workbooks->querySubObject("Open(QString, QVariant)", pathandfilename); //打开文件
-}
-
-//get number i sheet
-QAxObject* DataVisualization::getSheet(QAxObject* workBook, int number)
-{
-	return workBook->querySubObject("WorkSheets(int)", number); //访问第SHEETNUM个工作表
-}
-
-//do some test
-void DataVisualization::standardTest()
-{
-	QAxObject* workBook = getWorkBooks(excelFilePath);
-	QAxObject* workSheet = getSheet(workBook, 1);
-	QAxObject* cellA = workSheet->querySubObject("Range(QVariant, QVariant)", "A8");
-	cellA->dynamicCall("SetValue(const QVariant&)", QVariant("1+1"));//设置单元格的值
-
-	workBook->dynamicCall("Close()");
-	excel->dynamicCall("Quit()");
-}
-
-void DataVisualization::displayData(const QList<QList<QVariant>>& data, const  std::vector<QString>& names)
+void DataVisualization::displayData(const QList<QList<QVariant>>& data, 
+	const  std::vector<QString>& names)
 {
 	int rows = data.size();
 	int columns = data.at(0).size();
@@ -327,30 +323,240 @@ void DataVisualization::displayData(const QList<QList<QVariant>>& data, const  s
 	}
 }
 
-void DataVisualization::displayData(const std::vector<std::vector<QVariant>>& data, int beginRow, int headerRow)
+void DataVisualization::displayData(const std::vector<std::vector<QVariant>>& data,
+	int beginRow, int headerRow)
 {
-	int rows = data.size() - beginRow;
-	int columns = data.at(0).size();
+	int rows = data.size() - beginRow +1 ;
+	rowChecked = std::vector<bool>(rows, true);
+	int columns = data.at(0).size() + 1;
 	tableWidget->clear();
 	tableWidget->setRowCount(rows);
+	//tableWidget->setRowCount(21);
 	tableWidget->setColumnCount(columns);
 
+	//tableWidget->setHorizontalHeader();
+
+	//QHeaderView* firstHeader = new QHeaderView(Qt::Horizontal, tableWidget);
+	//firstHeader->setItemDelegate();
+
+	//tableWidget->setHorizontalHeader(firstHeader);
+
 	QStringList headers;
+	headers << "";
 	for (auto head : data[headerRow])
 	{
 		headers << head.toString();
 	}
 	tableWidget->setHorizontalHeaderLabels(headers);
+
 	for (int i = beginRow; i < data.size(); i++)
+	//for (int i = beginRow; i < beginRow + 20; i++)
 	{
 	    std::vector<QVariant>  allEnvDataList_i = data[i];//第i行的数据
-		//printf("\n");
-		for (int j = 0; j < allEnvDataList_i.size(); j++)
+		// set check box
+		QCheckBox* CheckBox = new QCheckBox(tableWidget);
+		CheckBox->setFixedSize(QSize(39,35));
+		CheckBox->setCheckState(Qt::Checked);
+		CheckBox->setWhatsThis(QString::number(i - beginRow));
+		connect(CheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkBoxchange(int)));
+		tableWidget->setCellWidget(i - beginRow, 0, CheckBox);//row行，0列
+
+		for (int j = 1; j < allEnvDataList_i.size(); j++)
 		{
 			QString tempvalue = allEnvDataList_i[j].toString();
 			//printf("%s, ", qPrintable(tempvalue));
 			QTableWidgetItem* item = new QTableWidgetItem(tempvalue);
-			tableWidget->setItem(i - beginRow, j, item);
+			tableWidget->setItem(i - beginRow + 1, j, item);
 		}
 	}
+    //create combobox
+	for (const QString& name : selectHeaderName)
+	{
+		int column = headerString2ColumnNumber(name);
+		ItemSelectCombox* combo = createSelectCombox(name);
+		tableWidget->setCellWidget(0, column, combo->content);//row行，0列
+	}
+}
+
+//traverse all row to updata filter view
+void DataVisualization::displaySelectRow(const std::vector<int>& rowsNumber)
+{
+	for (int i = 1; i < tableWidget->rowCount(); ++i)
+	{
+		tableWidget->setRowHidden(i,
+			(std::find(rowsNumber.cbegin(), rowsNumber.cend(), i) == rowsNumber.cend()));
+	}
+}
+
+std::vector<int>  DataVisualization::getSelectRowNumber(const std::vector<QString>& headType,
+	const std::vector<QString>& traget)
+{
+	Q_ASSERT(headType.size() == traget.size());
+	int tragetNumber = headType.size();
+	std::vector<int> tragetRowNumberCount(tableWidget->rowCount(), 0);
+	for (int i = 0; i < headType.size(); ++i)
+	{
+		if (traget[i] == QStringLiteral("全部"))
+		{
+			--tragetNumber;
+			continue;
+		}
+		int column = headerString2ColumnNumber(headType[i]);
+		if (column != -1)
+		{
+			for (int row = 0; row < tableWidget->rowCount(); ++row)
+			{
+				auto currentItem  = tableWidget->item(row, column);
+				if (currentItem == nullptr)
+					continue;
+				if (currentItem->text() == traget[i])
+				{
+					++tragetRowNumberCount[row];
+				}
+			}
+		}
+		else
+		{
+			printf("Can not find column :%s\n", qPrintable(headType[i]));
+			--tragetNumber;
+		}
+	}
+	std::vector<int> result;
+	for (int index = 0; index < tragetRowNumberCount.size(); ++index)
+	{
+		if (tragetRowNumberCount[index] == tragetNumber)
+		{
+			result.push_back(index);
+		}
+	}
+	return result;
+}
+
+int DataVisualization::headerString2ColumnNumber(const QString& headerName)
+{
+	for (int i = 0; i < tableWidget->columnCount(); ++i)
+	{
+		if (tableWidget->horizontalHeaderItem(i)->text() == headerName)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+void DataVisualization::checkBoxchange(int state)
+{
+	QCheckBox* check = (QCheckBox*)sender();
+	int row = check->whatsThis().toInt();
+	rowChecked[row] = (state == Qt::Checked);
+}
+
+void DataVisualization::buttonPress()
+{
+	/*std::vector<int> result = getSelectRowNumber(std::vector<QString>{QString::fromLocal8Bit(std::string("营销操盘方").data())},
+		std::vector<QString>{QString::fromLocal8Bit(std::string("新城").data())});
+	displaySelectRow(result);*/
+	/*if (count == 0)
+	{
+		addSelectCombox(QStringLiteral("事业部\n（住开/商开）"));
+		addSelectCombox(QStringLiteral("营销操盘方"));
+		addSelectCombox(QStringLiteral("城市环线"));
+	}
+	else
+	{
+		filterItem();
+	}
+	++count;*/
+	/*scatterData = std::map<QString, std::vector<double>>
+	{ {QStringLiteral("x轴"),std::vector<double >{2, 3,4,5,6.5,1.2,2.6,7.5}},
+	  {QStringLiteral("y轴"),std::vector<double >{3, 1.2,4.7,5.3,6.5,1.2,7.8,7.5}}
+	};*/
+	
+	//QChart* currentChart = createScatterChart();
+}
+
+void DataVisualization::uniqueItem(const QString& headerName, std::vector<QString>& items)
+{
+	int column = headerString2ColumnNumber(headerName);
+	if (column != -1)
+	{
+		int rowCount = tableWidget->rowCount();
+		for (int row = 0; row < rowCount; ++row)
+		{
+			auto currentItem = tableWidget->item(row, column);
+			if (currentItem == nullptr)
+				continue;
+			if (std::find(items.cbegin(), items.cend(), currentItem->text()) == items.cend())
+			{
+				items.push_back(currentItem->text());
+			}
+		}
+	}
+	else
+	{
+		printf("Can not find column :%s\n", qPrintable(headerName));
+	}
+	
+}
+
+void DataVisualization::addSelectCombox(const QString& headerName)
+{
+	std::vector<QString> uniqueNames;
+	uniqueItem(headerName, uniqueNames);
+
+	ItemSelectCombox* view = new ItemSelectCombox();
+	view->label = new QLabel(headerName);
+	view->content = new QComboBox();
+	view->content->addItem(QStringLiteral("全部"));
+	for (const QString& name : uniqueNames)
+	{
+		view->content->addItem(name);
+	}
+	ui.itemSelect.push_back(view);
+	ui.topCombox->addWidget(view->label);
+	ui.topCombox->addWidget(view->content);
+}
+
+ItemSelectCombox* DataVisualization::createSelectCombox(const QString& headerName)
+{
+	std::vector<QString> uniqueNames;
+	uniqueItem(headerName, uniqueNames);
+
+	ItemSelectCombox* view = new ItemSelectCombox();
+	view->label = new QLabel(headerName);
+	QComboBox* cccombox = new QComboBox();
+	view->content = cccombox;
+	
+	view->content->addItem(QStringLiteral("全部"));
+	for (const QString& name : uniqueNames)
+	{
+		view->content->addItem(name);
+	}
+	view->content->setObjectName(headerName);
+	ui.itemSelect.push_back(view);
+	connect(cccombox, SIGNAL(currentTextChanged(const QString&)), this, SLOT(comboxChanged(const QString&)));
+	/*ui.topCombox->addWidget(view->label);
+	ui.topCombox->addWidget(view->content);*/
+	return view;
+}
+void DataVisualization::comboxChanged(const QString& text)
+{
+	//QComboBox* combox = (QComboBox*)sender();
+	filterItem();
+}
+
+void DataVisualization::filterItem()
+{
+	std::vector<QString> headerName;
+	std::vector<QString> filterName;
+
+	for (int i = 0; i < ui.itemSelect.size(); ++i)
+	{
+		ItemSelectCombox* selected = ui.itemSelect.at(i);
+		headerName.push_back(selected->label->text());
+		filterName.push_back(selected->content->currentText());
+	}
+
+	std::vector<int> rows = getSelectRowNumber(headerName, filterName);
+	displaySelectRow(rows);
 }

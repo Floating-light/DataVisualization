@@ -13,8 +13,18 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QWidget>
-
+#include <qcombobox.h>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
 QT_BEGIN_NAMESPACE
+
+struct ItemSelectCombox
+{
+	QLabel* label;
+	QComboBox* content;
+};
 
 class Ui_DataVisualizationClass
 {
@@ -26,9 +36,21 @@ public:
     QToolBar *mainToolBar;
     QWidget *centralWidget;
     QStatusBar *statusBar;
-	QToolButton* pActionOpenBar;
+
 	QAction* actionOpenFile;
 	QAction* actionOpenChart;
+	QAction* histogramChart;
+	QAction* scatterChart;
+	QAction* lineChart;
+
+	QHBoxLayout* topCombox;
+	QHBoxLayout* viewLayout;
+
+	QVBoxLayout* mainVLayout;
+
+	QLineEdit* chartLineEdit;
+
+	QList< ItemSelectCombox*> itemSelect;
 
     void setupUi(QMainWindow *DataVisualizationClass)
     {
@@ -40,6 +62,9 @@ public:
 		actionOpenFile->setObjectName(QString::fromUtf8("actionOpen"));
 		actionOpenChart = new QAction(DataVisualizationClass);
 		actionOpenChart->setObjectName(QString::fromUtf8("actionChart"));
+		histogramChart = new QAction(DataVisualizationClass);
+		scatterChart = new QAction(DataVisualizationClass);
+		lineChart = new QAction(DataVisualizationClass);
 
         menuBar = new QMenuBar(DataVisualizationClass);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
@@ -48,27 +73,58 @@ public:
 		menuFile = new QMenu(menuBar);
 		menuFile->setObjectName(QString::fromUtf8("menuFile"));
 		menuFile->addAction(actionOpenFile);
+		
 		menuBar->addAction(menuFile->menuAction());
 
 		menuEdit = new QMenu(menuBar);
 		menuEdit->setObjectName(QString::fromUtf8("menuEdit"));
 		menuEdit->addAction(actionOpenChart);
-		menuBar->addAction(menuEdit->menuAction());
+		menuEdit->addAction(histogramChart);
+		menuEdit->addAction(scatterChart);
+		menuEdit->addAction(lineChart);
 
+		menuBar->addAction(menuEdit->menuAction());
 
         mainToolBar = new QToolBar(DataVisualizationClass);
         mainToolBar->setObjectName(QString::fromUtf8("mainToolBar"));
         DataVisualizationClass->addToolBar(mainToolBar);
 
-		pActionOpenBar = new QToolButton(mainToolBar);
-		pActionOpenBar->setIcon(QIcon("./Resources/open.png"));
-		pActionOpenBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-		pActionOpenBar->setText(QStringLiteral("打开"));
-		mainToolBar->addWidget(pActionOpenBar);
+		mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		mainToolBar->addAction(actionOpenFile);
+		mainToolBar->addAction(histogramChart);
+		mainToolBar->addAction(lineChart);
+		mainToolBar->addAction(scatterChart);
+
+		topCombox = new QHBoxLayout();
+		topCombox->setAlignment(Qt::AlignLeft);
+
+		viewLayout = new QHBoxLayout();
+
+		chartLineEdit = new QLineEdit();
+		chartLineEdit->setPlaceholderText(QStringLiteral("请输入图表所需要展示的表头"));
+		chartLineEdit->setText(QStringLiteral("19年2月综合全口径回笼率,19年2月综合权益口径回笼率"));
+
+		mainVLayout = new QVBoxLayout();
+		mainVLayout->addWidget(chartLineEdit);
+		mainVLayout->addLayout(topCombox);
+		mainVLayout->addLayout(viewLayout);
 
         centralWidget = new QWidget(DataVisualizationClass);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         DataVisualizationClass->setCentralWidget(centralWidget);
+		centralWidget->setLayout(mainVLayout);
+		
+		
+
+		//ItemSelectCombox* current = new ItemSelectCombox();
+		//itemSelect.push_back(current);
+		//current->label = new QLabel(QStringLiteral("营销操盘方:"));
+		//current->content = new QComboBox();
+		//current->content->addItems(QStringList{ QStringLiteral("中南") ,QStringLiteral("新城"),
+		//	QStringLiteral("碧桂园") });
+		////test->setSizeAdjustPolicy();
+		//topCombox->addWidget(current->label);
+		//topCombox->addWidget(current->content);
 
         statusBar = new QStatusBar(DataVisualizationClass);
         statusBar->setObjectName(QString::fromUtf8("statusBar"));
@@ -83,8 +139,21 @@ public:
     {
         DataVisualizationClass->setWindowTitle(QApplication::translate("DataVisualizationClass", "DataVisualization", nullptr));
 		actionOpenFile->setText(QString::fromLocal8Bit(std::string("打开").data()));
+		actionOpenFile->setIcon(QIcon("./Resources/file.png"));
+
 		actionOpenChart->setText(QString::fromLocal8Bit(std::string("图表").data()));
+		actionOpenChart->setIcon(QIcon("./Resources/all.png"));
+
+		histogramChart->setText(QStringLiteral("柱状图"));
+		histogramChart->setIcon(QIcon("./Resources/histogram.png"));
 		
+
+		scatterChart->setText(QStringLiteral("散点图"));
+		scatterChart->setIcon(QIcon("./Resources/scatter.png"));
+
+		lineChart->setText(QStringLiteral("折线图"));
+		lineChart->setIcon(QIcon("./Resources/line.png"));
+
 		menuFile->setTitle(QString::fromLocal8Bit(std::string("文件").data()));
 		menuEdit->setTitle(QString::fromLocal8Bit(std::string("视图").data()));
 	} // retranslateUi
