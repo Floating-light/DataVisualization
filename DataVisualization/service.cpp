@@ -858,7 +858,7 @@ void service::predictNextMonth3(ExcelDataServer* server) {
 			for (int i = currentMonth+1; i <= nextmonth; i++) {
 				sumdata1 += server->getCellData(QString::number(currentYear) + constYear + QString::number(i) + constMonth + QString::fromLocal8Bit(std::string("回笼预估达成（趋势版）").data()), tempi).toDouble();
 			}
-			double qkj = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("初全口径应收款").data()), tempi).toDouble();
+			double qkj = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("期初全口径应收款").data()), tempi).toDouble();
 			double sumdata2 = 0;
 			for (int i = 1; i <currentMonth; i++) {
 				sumdata2 += server->getCellData(QString::number(currentYear) + constYear + QString::number(i) + constMonth + QString::fromLocal8Bit(std::string("签约已达成").data()), tempi).toDouble();
