@@ -17,7 +17,6 @@ service::service(int start, int end)
 {
 	startRow = start;
 	endRow = end;
-	loadReport();
 }
 
 service::~service()
@@ -41,32 +40,6 @@ void service::setEndRow(int v) {
 
 void service::setStartRow(int v) {
 	startRow = v;
-}
-
-QMap <QString, QStringList> service::getReport() {
-	return report;
-}
-
-
-//--------------------------------------报表打入----------------------------------------
-void service::loadReport() {
-
-	QFile file(QString::fromLocal8Bit(std::string("./input/报表输出.txt").data()));
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{
-		qDebug() << "Can't open the file!";
-	}
-	while (!file.atEnd())
-	{
-		QByteArray line = file.readLine();
-		QString str(line);
-		//printf("%s", qPrintable(str));
-		QStringList list = str.split("@");
-		QString rec = list[1].trimmed();
-		QString label = list[0].trimmed();
-		QStringList multi = rec.split(" ");
-		report.insert(label, multi);
-	}
 }
 
 
@@ -1225,11 +1198,8 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 								+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
 								qhl = ypjs/ks;
 							}
-							if (qhl < 0.00001)
+							if (qhl >0.000001)
 							{
-								;
-							}
-							else {
 								output += qhl;
 								count++;
 							}

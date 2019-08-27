@@ -45,17 +45,14 @@ public:
 	void yearPredict5(ExcelDataServer* server);
 	void yearPredict6(ExcelDataServer* server);
 	
-	void loadReport();
 	void setStartRow(int);
 	void setEndRow(int);
 	int getStartRow();
 	int getEndRow();
-	QMap <QString, QStringList> getReport();
 	~service();
 
 private:
 	int startRow;
 	int endRow;
-	QMap <QString, QStringList> report;
 };
 
