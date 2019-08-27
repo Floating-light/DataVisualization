@@ -2,6 +2,8 @@
 #include <vector>
 #include <limits>
 #include "data/DataServer.h"
+#include <QVector>
+#include <QChar>
 
 class ExcelDataServer : public DataServer
 {
