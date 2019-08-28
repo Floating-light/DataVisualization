@@ -98,13 +98,18 @@ public:
 	void filterItem();
 	void initExportenu();
 	void doExport();
+	void templateExport();
+
 	void displayScatterChart();
 	void displayLineChart();
 	void displayBarChart();
+
+	
 public slots:
 	void buttonPress();
 	void checkBoxchange(int state);
 	void comboxChanged(const QString& text);
+
 private:
 
 	int count = 0;
@@ -133,6 +138,7 @@ private:
 	void excute();
 	void updataContent(const std::vector<std::vector<QVariant>>& data,
 		int beginRow, int headerRow);
+
 private slots:
 	void headerClicked(int);
 };

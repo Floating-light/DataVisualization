@@ -24,6 +24,7 @@ DataVisualization::DataVisualization(QWidget* parent)
 	connect(ui.lineChart, &QAction::triggered, this, &DataVisualization::displayLineChart);
 	connect(ui.calculate, &QAction::triggered, this, &DataVisualization::excute);
 	connect(ui.saveFile, &QAction::triggered, this, &DataVisualization::saveFile);
+	connect(ui.templateExport, &QAction::triggered, this, &DataVisualization::templateExport);
 }
 
 DataVisualization::~DataVisualization()
@@ -244,10 +245,11 @@ QChart* DataVisualization::createBarChart()
 	QStringList stringList = content.split(',');
 
 	QChart* chart = new QChart();
-	chart->setTitle("Bar chart");
+	chart->setTitle(QStringLiteral("直方图"));
 	int valueMax = std::numeric_limits<int>::min();
 	int valueMin = std::numeric_limits<int>::max();
-	QStackedBarSeries* series = new QStackedBarSeries(chart);
+	//QStackedBarSeries* series = new QStackedBarSeries(chart);
+	QBarSeries* series = new QBarSeries(chart);
 	for (int i(0); i < m_dataTable.count(); i++) {
 		QBarSet* set = new QBarSet(stringList[i]);
 		for (const Data& data : m_dataTable[i])
@@ -261,7 +263,7 @@ QChart* DataVisualization::createBarChart()
 	chart->addSeries(series);
 
 	chart->createDefaultAxes();
-	chart->axes(Qt::Vertical).first()->setRange(valueMin, valueMax*2+10);
+	chart->axes(Qt::Vertical).first()->setRange(valueMin, valueMax+ valueMax*0.1);
 	// Add space to label to add space between labels and axis
 	QValueAxis * axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
 	Q_ASSERT(axisY);
@@ -725,4 +727,17 @@ void DataVisualization::doExport()
 	}
 
 	excelServer->exportSheet(exportData, action->text());
+}
+
+void DataVisualization::templateExport()
+{
+	QString filePath = QFileDialog::getOpenFileName();
+	printf("file path : %s\n", qPrintable(filePath));
+	if (filePath == "")
+	{
+		printf("file path is empty %s\n");
+		return;
+	}
+	excelServer->templateExport(filePath, 4);
+	printf("Export complete.\n");
 }

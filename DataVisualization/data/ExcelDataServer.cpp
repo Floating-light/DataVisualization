@@ -1,4 +1,4 @@
-#include "data/ExcelDataServer.h"
+ï»¿#include "data/ExcelDataServer.h"
 #include <stack>
 #include <math.h>
 ExcelDataServer::ExcelDataServer()
@@ -13,12 +13,12 @@ ExcelDataServer::~ExcelDataServer()
 void ExcelDataServer::initExcelAppAndWorksheet()
 {
 	excelApp = new QAxObject("Excel.Application");
-	//excelApp->setProperty("Visible", false); //Òş²Ø´ò¿ªµÄexcelÎÄ¼ş½çÃæ
-	excelApp->setProperty("DisplayAlerts", false);//²»ÏÔÊ¾¾¯¸æ
-	excelWorkbooks = excelApp->querySubObject("WorkBooks");//¿É´ò¿ª¶à¸öexcel
+	//excelApp->setProperty("Visible", false); //éšè—æ‰“å¼€çš„excelæ–‡ä»¶ç•Œé¢
+	excelApp->setProperty("DisplayAlerts", false);//ä¸æ˜¾ç¤ºè­¦å‘Š
+	excelWorkbooks = excelApp->querySubObject("WorkBooks");//å¯æ‰“å¼€å¤šä¸ªexcel
 }
 
-//ÊÍ·ÅExcel¶ÔÏó
+//é‡Šæ”¾Excelå¯¹è±¡
 void ExcelDataServer::freeExcel()
 {
 	excelWorkbooks->dynamicCall("Close()");
@@ -51,7 +51,7 @@ void ExcelDataServer::getColum(QAxObject* sheet, QString colum, std::vector<doub
 	QVariant variantData = allEnvData->property("Value");
 	QVariantList listVariant = variantData.toList();
 
-	//µÚiĞĞ
+	//ç¬¬iè¡Œ
 	for (int i = 0; i < listVariant.size(); ++i)
 	{
 		QVariantList lastList= listVariant[i].toList();
@@ -217,13 +217,13 @@ void ExcelDataServer::writeColum(QAxObject* sheet, QString range, const QVariant
 int ExcelDataServer::getRowsNumber()
 {
 	QVariantList eachRow = allData.toList();
-	return eachRow.size(); //»ñÈ¡ĞĞÊı
+	return eachRow.size(); //è·å–è¡Œæ•°
 	
 }
 
 bool ExcelDataServer::getRowData(QAxObject* sheet, int rowNumber, QVariantList& result)
 {
-	QVariantList allEnvDataList = allData.toList();//×ª»»Îªlist
+	QVariantList allEnvDataList = allData.toList();//è½¬æ¢ä¸ºlist
 	result = allEnvDataList.at(rowNumber - 1).toList();
 	
 	for (int i = 0; i < result.size(); ++i)
@@ -246,7 +246,7 @@ int ExcelDataServer::getColumsNumber()
 {
 	QVariantList eachRow = allData.toList();
 
-	return eachRow[0].toList().size(); //»ñÈ¡ĞĞÊı
+	return eachRow[0].toList().size(); //è·å–è¡Œæ•°
 }
 
 void ExcelDataServer::setAllData(QAxObject* usedrange)
@@ -500,12 +500,12 @@ int ExcelDataServer::checkProority(QChar s1, QChar s2)
 
 QAxObject* ExcelDataServer::addSheet(QAxObject* workSheets, const QString& name)
 {
-	int sheet_count = workSheets->property("Count").toInt();  //»ñÈ¡¹¤×÷±íÊıÄ¿
+	int sheet_count = workSheets->property("Count").toInt();  //è·å–å·¥ä½œè¡¨æ•°ç›®
 	QAxObject* last_sheet = workSheets->querySubObject("Item(int)", sheet_count);
 	QAxObject* work_sheet = workSheets->querySubObject("Add(QVariant)", last_sheet->asVariant());
 	last_sheet->dynamicCall("Move(QVariant)", work_sheet->asVariant());
 
-	work_sheet->setProperty("Name", name);  //ÉèÖÃ¹¤×÷±íÃû³Æ
+	work_sheet->setProperty("Name", name);  //è®¾ç½®å·¥ä½œè¡¨åç§°
 	return work_sheet;
 }
 
@@ -546,10 +546,10 @@ void ExcelDataServer::appendColums2Sheet(const std::vector<QString>& headNames,
 {
 	QAxObject* usedrange = sheet->querySubObject("UsedRange");
 	QAxObject* rows = usedrange->querySubObject("Rows");
-	int rownum = rows->property("Count").toInt(); //»ñÈ¡ĞĞÊı
+	int rownum = rows->property("Count").toInt(); //è·å–è¡Œæ•°
 
 	QAxObject* colums = usedrange->querySubObject("Columns");
-	int colnum = rows->property("Count").toInt(); //»ñÈ¡ÁĞÊı
+	int colnum = rows->property("Count").toInt(); //è·å–åˆ—æ•°
 
 	for (int i = 0; i < headNames.size(); ++i)
 	{
@@ -634,7 +634,7 @@ void ExcelDataServer::writedata(QString data, QString c, int r)
 
 	QAxObject* cell = currentWorksheet->querySubObject("Range(QVariant, QVariant)",
 		iter->second + QString::number(r));
-	cell->dynamicCall("SetValue(const QVariant&)", QVariant(data));//ÉèÖÃµ¥Ôª¸ñµÄÖµ
+	cell->dynamicCall("SetValue(const QVariant&)", QVariant(data));//è®¾ç½®å•å…ƒæ ¼çš„å€¼
 }
 void ExcelDataServer::writedata(int data, QString c, int r)
 {
@@ -647,7 +647,7 @@ void ExcelDataServer::writedata(int data, QString c, int r)
 
 	QAxObject * cell = currentWorksheet->querySubObject("Range(QVariant, QVariant)",
 		iter->second + QString::number(r));
-	cell->dynamicCall("SetValue(const QVariant&)", QVariant(data));//ÉèÖÃµ¥Ôª¸ñµÄÖµ
+	cell->dynamicCall("SetValue(const QVariant&)", QVariant(data));//è®¾ç½®å•å…ƒæ ¼çš„å€¼
 }
 
 void ExcelDataServer::writedata(QVariant data, QString c, int r)
@@ -655,7 +655,7 @@ void ExcelDataServer::writedata(QVariant data, QString c, int r)
 	auto iter = nameToSubScript.find(c);
 	if (iter == nameToSubScript.end())
 	{
-		printf("can not find cell £¨column£º%s, row: %d£©\n", qPrintable(c), r);
+		printf("can not find cell ï¼ˆcolumnï¼š%s, row: %dï¼‰\n", qPrintable(c), r);
 		return;
 	}
 	sheetContent[r - 1][iter->second] = data;
@@ -665,4 +665,133 @@ void ExcelDataServer::exportSheet(const QList<QList<QVariant>>& exportData, cons
 {
 	QAxObject* newSheet =  addSheet(currentWorksheets, sheetName);
 	writeArea(newSheet, exportData);
+}
+
+void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
+{
+	QAxObject* tempBook = openExcelFile(templatePath);
+	if (!tempBook)
+	{
+		QMessageBox::about(nullptr, QStringLiteral("æç¤º"), QStringLiteral("æ‰“å¼€æ¨¡æ¿å¤±è´¥ï¼"));
+		return;
+	}
+
+	QAxObject* sheets = tempBook->querySubObject("Sheets");
+	QAxObject* templateSheet = sheets->querySubObject("Item(int)", 1);
+	QAxObject* usedrange = templateSheet->querySubObject("UsedRange");
+	QVariant tempValue = usedrange->dynamicCall("Value");
+
+	QVariantList exportColumn = tempValue.toList().at(headerRow - 1).toList();
+	QList<QList<QVariant>> exportData;
+
+	for (int i = 0; i < tempValue.toList().size(); ++i)
+	{
+		exportData.push_back(tempValue.toList().at(i).toList());
+	}
+
+	getColumnSpecifyData(exportColumn, exportData);
+	//QVariant var;
+	//castListListVariant2Variant(var, exportData);
+	//usedrange->setProperty("Value", var);
+	////usedrange->setProperty("Value", tempValue);
+
+	writeArea(templateSheet, exportData);
+
+	tempBook->dynamicCall("Save()");
+	
+	tempBook->dynamicCall("Close(Boolean)", false);
+	delete tempBook;
+}
+
+//add to column4
+//äº‹ä¸šéƒ¨ï¼ˆä½å¼€ / å•†å¼€ï¼‰change add æ€»è®¡
+//å¤§åŒºï¼ˆå— / ä¸­ / åŒ—ï¼‰change add åˆè®¡
+//åŸå¸‚å…¬å¸ change add å°è®¡
+void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
+	QList<QList<QVariant>>& exportData)
+{
+	std::vector<int> exportIndexs;
+	for (auto s : exportHeader)
+	{
+		auto iter = nameToSubScript.find(s.toString().remove(QRegExp("\\s")));
+		if (iter == nameToSubScript.end())
+		{
+			printf("con't find header %s\n", qPrintable(s.toString()));
+			exportIndexs.push_back(-1);
+			continue;
+		}
+		exportIndexs.push_back(iter->second);
+	}
+
+	std::vector<QVariant> firstRow = sheetContent[beginRow.toInt() - 1];
+	std::vector<QString>cache{ firstRow[0].toString(),firstRow[1].toString(),firstRow[2].toString() };
+
+	int end = endRow.toInt();
+	for (int row = beginRow.toInt() - 1; row < end; ++row){
+		if (row == 482)
+		{
+			1;
+		}
+		std::vector<QVariant> currentRow = sheetContent[row];
+		for (int i = 0; i < cache.size(); ++i)
+		{
+			if (currentRow[i].toString() != cache[i])
+			{
+				exportData.push_back(getInsertRow(cache, i, exportIndexs.size()));
+				cache[i] = currentRow[i].toString();
+			}
+		}
+		QList<QVariant> curr;
+		for (auto index : exportIndexs)
+		{
+			if (index != -1)
+			{
+                curr.push_back(currentRow[index]);
+			}
+			else
+			{
+				curr.push_back(QVariant());
+			}
+			
+		}
+		exportData.push_back(curr);
+	}
+}
+
+QList<QVariant> ExcelDataServer::getInsertRow(const std::vector<QString>& cache,
+	int changedIndex, int columnNumber)
+{
+	QList<QVariant> addrow;
+	for (int i = 0; i < cache.size(); ++i)
+	{
+		if (i > changedIndex)
+			break;
+		addrow.push_back(QVariant(cache[i]));
+	}
+
+	while (addrow.size() != 3)
+	{
+		addrow.push_back(QVariant());
+	}
+	
+	switch (changedIndex)
+	{
+	case 0:
+		addrow.push_back(QStringLiteral("æ€»è®¡"));
+		break;
+	case 1:
+		addrow.push_back(QStringLiteral("åˆè®¡"));
+		break;
+	case 2:
+		addrow.push_back(QStringLiteral("å°è®¡"));
+		break;
+	default:
+		break;
+	}
+
+	while (addrow.size() < columnNumber)
+	{
+		addrow.push_back(QVariant());
+	}
+	return addrow;
 }

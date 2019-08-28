@@ -45,6 +45,8 @@ public:
 	QAction* lineChart;
 	QAction* calculate;
 	QAction* saveFile;
+	QAction* templateExport;
+
 	std::vector<QAction*> exportActions;
 
 	QHBoxLayout* topCombox;
@@ -71,6 +73,7 @@ public:
 		lineChart = new QAction(DataVisualizationClass);
 		calculate = new QAction(DataVisualizationClass);
 		saveFile = new QAction(DataVisualizationClass);
+		templateExport = new QAction(DataVisualizationClass);
 
         menuBar = new QMenuBar(DataVisualizationClass);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
@@ -93,6 +96,7 @@ public:
 
 		menuExport = new QMenu(menuBar);
 		menuExport->setObjectName(QString::fromUtf8("menuEdit"));
+		menuExport->addAction(templateExport);
 
 		menuBar->addAction(menuExport->menuAction());
 
@@ -107,6 +111,7 @@ public:
 		mainToolBar->addAction(scatterChart);
 		mainToolBar->addAction(calculate);
 		mainToolBar->addAction(saveFile);
+		mainToolBar->addAction(templateExport);
 
 		topCombox = new QHBoxLayout();
 		topCombox->setAlignment(Qt::AlignLeft);
@@ -171,7 +176,10 @@ public:
 		calculate->setIcon(QIcon("./Resources/caclute.png"));//saveFile
 
 		saveFile->setText(QStringLiteral("保存"));
-		saveFile->setIcon(QIcon("./Resources/save.png"));//saveFile
+		saveFile->setIcon(QIcon("./Resources/save.png"));//saveFiletemplateExport
+
+		templateExport->setText(QStringLiteral("模板导出"));
+		templateExport->setIcon(QIcon("./Resources/export.png"));//saveFile
 
 		menuFile->setTitle(QString::fromLocal8Bit(std::string("文件").data()));
 		menuEdit->setTitle(QString::fromLocal8Bit(std::string("视图").data()));
