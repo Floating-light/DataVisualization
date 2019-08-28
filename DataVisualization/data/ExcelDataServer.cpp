@@ -684,12 +684,13 @@ void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 	QVariantList exportColumn = tempValue.toList().at(headerRow - 1).toList();
 	QList<QList<QVariant>> exportData;
 
-	for (int i = 0; i < tempValue.toList().size(); ++i)
+	getColumnSpecifyData(exportColumn, exportData);
+
+	for (int i = tempValue.toList().size()-1; i >= 0; --i)
 	{
-		exportData.push_back(tempValue.toList().at(i).toList());
+		exportData.push_front(tempValue.toList().at(i).toList());
 	}
 
-	getColumnSpecifyData(exportColumn, exportData);
 	//QVariant var;
 	//castListListVariant2Variant(var, exportData);
 	//usedrange->setProperty("Value", var);
@@ -710,6 +711,7 @@ void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 	QList<QList<QVariant>>& exportData)
 {
+	//convert string header name to int subscript
 	std::vector<int> exportIndexs;
 	for (auto s : exportHeader)
 	{
@@ -723,22 +725,37 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 		exportIndexs.push_back(iter->second);
 	}
 
-	std::vector<QVariant> firstRow = sheetContent[beginRow.toInt() - 1];
-	std::vector<QString>cache{ firstRow[0].toString(),firstRow[1].toString(),firstRow[2].toString() };
+	//cache previous top three header 
+	std::vector<QString>cacheTopHeaderName{ "","","" };
+	std::vector<int>cacheLastTopHeaderRowIndex{ -1,-1,-1 };
+
+	std::vector<int> sumColumn;
+	sumSkipColumn(sheetContent[beginRow.toInt() - 1], exportIndexs, sumColumn);
 
 	int end = endRow.toInt();
+	//traverse all data row
 	for (int row = beginRow.toInt() - 1; row < end; ++row){
-		if (row == 482)
-		{
-			1;
-		}
 		std::vector<QVariant> currentRow = sheetContent[row];
-		for (int i = 0; i < cache.size(); ++i)
+		//check if top three header change
+		for (int i = 0; i < cacheTopHeaderName.size(); ++i)
 		{
-			if (currentRow[i].toString() != cache[i])
+			if (currentRow[i].toString() != cacheTopHeaderName[i])
 			{
-				exportData.push_back(getInsertRow(cache, i, exportIndexs.size()));
-				cache[i] = currentRow[i].toString();
+				//excuteSummation(row, i, cacheLastTopHeaderRowIndex, )
+				if (i == 2 && cacheLastTopHeaderRowIndex[i]!= -1)
+				{
+					std::vector<double> sum = excuteSummation(exportData,sumColumn, i);
+					int sumWriteRow = cacheLastTopHeaderRowIndex[i];
+					for (int index : sumColumn)
+					{
+						//sumWriteRow 3, should be 23
+						exportData[sumWriteRow][index] = QVariant(sum[index]);
+					}
+				}
+				
+				exportData.push_back(getInsertRow(currentRow, i, exportIndexs.size()));
+				cacheTopHeaderName[i] = currentRow[i].toString();
+				cacheLastTopHeaderRowIndex[i] = exportData.size()-1;
 			}
 		}
 		QList<QVariant> curr;
@@ -758,40 +775,95 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 	}
 }
 
-QList<QVariant> ExcelDataServer::getInsertRow(const std::vector<QString>& cache,
+QList<QVariant> ExcelDataServer::getInsertRow(const std::vector<QVariant>& cache,
 	int changedIndex, int columnNumber)
 {
-	QList<QVariant> addrow;
-	for (int i = 0; i < cache.size(); ++i)
+	QList<QVariant> extraRow;
+	for (int i = 0; i <= changedIndex; ++i)//push previous header
 	{
-		if (i > changedIndex)
-			break;
-		addrow.push_back(QVariant(cache[i]));
+		extraRow.push_back(cache[i]);
 	}
 
-	while (addrow.size() != 3)
+	while (extraRow.size() != 3)//insert empty things 
 	{
-		addrow.push_back(QVariant());
+		extraRow.push_back(QVariant());
 	}
 	
-	switch (changedIndex)
+	switch (changedIndex)//... ...
 	{
 	case 0:
-		addrow.push_back(QStringLiteral("总计"));
+		extraRow.push_back(QStringLiteral("总计"));
 		break;
 	case 1:
-		addrow.push_back(QStringLiteral("合计"));
+		extraRow.push_back(QStringLiteral("合计"));
 		break;
 	case 2:
-		addrow.push_back(QStringLiteral("小计"));
+		extraRow.push_back(QStringLiteral("小计"));
 		break;
 	default:
 		break;
 	}
 
-	while (addrow.size() < columnNumber)
+	while (extraRow.size() < columnNumber)
 	{
-		addrow.push_back(QVariant());
+		extraRow.push_back(QVariant());
 	}
-	return addrow;
+	return extraRow;
+}
+
+std::vector<double> ExcelDataServer::excuteSummation(const QList<QList<QVariant>>& exportData,
+	const std::vector<int>& sumColumn, int changedHeader)
+{
+	int rowIndex = exportData.size() - 1;
+	QList<QVariant> currentRow = exportData[rowIndex];
+
+	QString tragetHeader = currentRow[changedHeader].toString();
+
+	std::vector<double> sum(currentRow.size(), 0);
+	
+	while (currentRow[changedHeader] == tragetHeader && rowIndex >=0)
+	{
+		for (int index : sumColumn)
+		{
+			sum[index] += currentRow[index].toDouble();
+		}
+		
+		currentRow = exportData[--rowIndex];
+	}
+	return sum;
+}
+
+bool ExcelDataServer::isPureDigit(const QString& str)
+{
+	QByteArray bayte = str.toLatin1();
+	const char* s = bayte.data();
+	while (*s && (*s == '.' || (*s >= '0' && *s <= '9')))
+		++s;
+	if (*s)
+		return false;
+	else
+		return true;
+}
+
+void ExcelDataServer::sumSkipColumn(const std::vector<QVariant>& checkColumn, const std::vector<int>& exportIndexs,
+	std::vector<int>& sumColumn)
+{
+	for (int i = 0; i <  exportIndexs.size(); ++i)
+	{
+		if (exportIndexs[i] == -1)
+			continue;
+		if (isPureDigit(checkColumn[exportIndexs[i]].toString()))
+		{
+			sumColumn.push_back(i);
+		}
+	}
+	/*for (int i : exportIndexs)
+	{
+		if (i == -1)
+			continue;
+		if (isPureDigit(checkColumn[i].toString()))
+		{
+			sumColumn.push_back(i);
+		}
+	}*/
 }

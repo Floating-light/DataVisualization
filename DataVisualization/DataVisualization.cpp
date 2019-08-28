@@ -86,7 +86,7 @@ void DataVisualization::openFile()
 
 	//initialize calculate server
 	proService = service(startrow, endrow);
-	report = proService.getReport();
+	//report = proService.getReport();
 	initExportenu();
 
 	QVariantList resultColum3;
