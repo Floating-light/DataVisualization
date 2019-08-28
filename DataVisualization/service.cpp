@@ -9,6 +9,7 @@ const int currentMonth = D1.month();
 const QString constYear = QString::fromLocal8Bit(std::string("年").data());
 const QString constMonth = QString::fromLocal8Bit(std::string("月").data());
 
+//--------------------------------------构造--------------------------------------------
 service::service()
 {
 }
@@ -23,6 +24,7 @@ service::~service()
 {
 
 }
+
 
 //-------------------------------------基础方法------------------------------------------
 
@@ -61,7 +63,7 @@ QString service::replace(QStringList & v, int month, int year) {
 			}
 			else if (v[i].startsWith("#")) {
 				if (month == 1 && year == startYear) {
-					return "";
+					return "0";
 				}
 				else {
 					v[i] = QString::number(year) + constYear + QString::number(month - 1) + constMonth + v[i].mid(1, -1);
@@ -91,7 +93,7 @@ QString service::replace(QStringList & v, int month, int year) {
 			else if (v[i].startsWith("%")) {
 				QString temp = "(";
 				for (int tempi = month - 2; tempi <= month; tempi++) {
-					temp.append(QString::number(year) + constYear + QString::number(i) + constMonth + v[i].mid(1, -1) + "+");
+					temp.append(QString::number(year) + constYear + QString::number(tempi) + constMonth + v[i].mid(1, -1) + "+");
 				}
 				temp.chop(1);
 				v[i] = temp + ")/3";
@@ -183,9 +185,11 @@ void service::calYear(QString filepath, ExcelDataServer* dataServer) {
 		QString label = list[0].trimmed();
 		QString longstring = expand(rec, currentMonth, currentYear);
 		if (!longstring.isEmpty()) {
+			printf("Process ... ...\n");
 			printf("%s\t", qPrintable(longstring));
 			printf("%s\n", qPrintable(QString::number(currentYear) + constYear + label));
 			dataServer->calculator(longstring, QString::number(currentYear) + constYear + label);
+			printf("Process ... ... done\n");
 		}
 	}
 }
