@@ -272,7 +272,7 @@ void service::predictcurrentMonth1( ExcelDataServer* server) {
 
 //当前月预判计算
 void service::predictcurrentMonth2(ExcelDataServer* server) {
-	for (int i = this->startRow; i < this->endRow; i++) {
+	for (int i = this->startRow; i <= this->endRow; i++) {
 		QString xmlx = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 			+ constMonth + QString::fromLocal8Bit(std::string("项目类型").data()), i).toString();
 		if (xmlx.compare(QString::fromLocal8Bit(std::string("首开类").data())) == 0) {
