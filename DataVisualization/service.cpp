@@ -1323,7 +1323,7 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 							maxqydc = maxqydc > data ? maxqydc : data;
 						}
 						server->writedata(QVariant(min(min(output, maxqydc), dyks)), QString::number(currentYear) + constYear
-							+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("‘§≈–º∆À„").data()), tempi);
+							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("‘§≈–º∆À„").data()), tempi);
 					}
 				}
 			}
