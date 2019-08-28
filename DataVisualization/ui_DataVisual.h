@@ -155,6 +155,7 @@ public:
 
     void retranslateUi(QMainWindow *DataVisualizationClass)
     {
+		DataVisualizationClass->setWindowIcon(QIcon("./Resources/data.png"));
         DataVisualizationClass->setWindowTitle(QApplication::translate("DataVisualizationClass", "DataVisualization", nullptr));
 		actionOpenFile->setText(QString::fromLocal8Bit(std::string("´ò¿ª").data()));
 		actionOpenFile->setIcon(QIcon("./Resources/file.png"));

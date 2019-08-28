@@ -92,7 +92,11 @@ public:
 
 	void templateExport(const QString& templatePath,  int headerRow);
 	void getColumnSpecifyData(const QVariantList& exportHeader, QList<QList<QVariant>>& exportData);
-	QList<QVariant> getInsertRow(const std::vector<QString>& cache, int changedIndex, int columnNumber);
+	QList<QVariant> getInsertRow(const std::vector<QVariant>& cache, int changedIndex, int columnNumber);
+	std::vector<double> excuteSummation(const QList<QList<QVariant>>& exportData,const std::vector<int>& sumColumn,
+		int changedHeader);
+	bool isPureDigit(const QString& str);
+	void sumSkipColumn(const std::vector<QVariant>&checkColumn, const std::vector<int>& exportIndexs, std::vector<int>& sumColumn);
 private:
 	QAxObject* excelApp;
 
