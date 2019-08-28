@@ -94,7 +94,9 @@ public:
 	void getColumnSpecifyData(const QVariantList& exportHeader, QList<QList<QVariant>>& exportData);
 	QList<QVariant> getInsertRow(const std::vector<QVariant>& cache, int changedIndex, int columnNumber);
 	std::vector<double> excuteSummation(const QList<QList<QVariant>>& exportData,const std::vector<int>& sumColumn,
-		int changedHeader);
+		int changedHeader, const QString& name);
+	std::vector<double> mergeSummation(const QList<QList<QVariant>>& exportData,
+		const std::vector<int>& sumColumn, int changedHeader,const QString& name);
 	bool isPureDigit(const QString& str);
 	void sumSkipColumn(const std::vector<QVariant>&checkColumn, const std::vector<int>& exportIndexs, std::vector<int>& sumColumn);
 private:
