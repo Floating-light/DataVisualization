@@ -505,8 +505,8 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					diff--;
 				}
 				if (isok) {			
-					double qhljz;
-					double wyyjll;
+					double qhljz=0;
+					double wyyjll=0;
 					int dyear = currentYear;
 					int dmonth = currentMonth;
 					int count = 0;
