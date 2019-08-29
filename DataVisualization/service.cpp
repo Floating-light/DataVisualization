@@ -25,7 +25,6 @@ service::~service()
 
 }
 
-
 //-------------------------------------基础方法------------------------------------------
 
 int service::getEndRow() {
@@ -63,7 +62,7 @@ QString service::replace(QStringList & v, int month, int year) {
 			}
 			else if (v[i].startsWith("#")) {
 				if (month == 1 && year == startYear) {
-					return "0";
+					return "";
 				}
 				else {
 					v[i] = QString::number(year) + constYear + QString::number(month - 1) + constMonth + v[i].mid(1, -1);
@@ -92,7 +91,7 @@ QString service::replace(QStringList & v, int month, int year) {
 			}
 			else if (v[i].startsWith("%")) {
 				QString temp = "(";
-				for (int tempi = month - 2; tempi <= month; tempi++) {
+				for (int tempi = month - 3; tempi < month; tempi++) {
 					temp.append(QString::number(year) + constYear + QString::number(tempi) + constMonth + v[i].mid(1, -1) + "+");
 				}
 				temp.chop(1);
@@ -221,6 +220,33 @@ void service::calFutureMonth(QString filepath,ExcelDataServer* dataServer) {
 	}
 }
 
+//当前未来月计算任务
+void service::calCurrentFutureMonth(QString filepath, ExcelDataServer* dataServer) {
+	QFile file(filepath);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		qDebug() << "Can't open the file!";
+	}
+	while (!file.atEnd())
+	{
+		QByteArray line = file.readLine();
+		QString str(line);
+		QStringList list = str.split("=");
+		QString rec = list[1].trimmed();
+		QString label = list[0].trimmed();
+		for (int i = currentMonth; i <= 12; i++) {
+			QString longstring = expand(rec, i, currentYear);
+			if (!longstring.isEmpty()) {
+				printf("Process ... ...\n");
+				printf("\t%s\t", qPrintable(longstring));
+				printf("%s\n", qPrintable(QString::number(currentYear) + constYear + QString::number(i) + constMonth + label));
+				dataServer->calculator(longstring, QString::number(currentYear) + constYear + QString::number(i) + constMonth + label);
+				printf("Process ... ... done\n");
+			}
+		}
+	}
+}
+
 
 //----------------------------------当前月预判--------------------------------
 //当前月项目类型
@@ -229,7 +255,7 @@ void service::predictcurrentMonth1( ExcelDataServer* server) {
 	int count_pulus = 0;
 	int count_continue = 0;
 	int count_null = 0;
-	for (int i = this->startRow; i < this->endRow; i++) {
+	for (int i = this->startRow; i <= this->endRow; i++) {
 		double ndqydc = server->getCellData(QString::number(currentYear) + constYear
 			+ QString::fromLocal8Bit(std::string("年度签约已达成").data()), i).toDouble();
 
@@ -465,7 +491,6 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 			}
 			else {
 				int diff = 3;
-				double output;
 				int dyear = currentYear;
 				int dmonth = currentMonth;
 				bool isok = false;
@@ -486,7 +511,7 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					int dmonth = currentMonth;
 					int count = 0;
 					int calcount = 3;
-					double output;
+					double output=0;
 					while (calcount>0) {
 						dmonth -= 1;
 						double qhl = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
@@ -530,18 +555,20 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					wyyjll = (alldata - maxdata - mindata) / (circletime - 2);
 					double dyqyxdc = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("签约已达成").data()), i).toDouble();
-					server->writedata(QVariant(max(min(min(dyhz * qhljz, wyyjll), dyhz), dyqyxdc)), QString::number(currentYear)
+					
+					double min1 = min(dyhz * qhljz, wyyjll);
+					server->writedata(QVariant(max(min(min1, dyhz), dyqyxdc)), QString::number(currentYear)
 						+ constYear + QString::number(currentMonth) + constMonth
 						+ QString::fromLocal8Bit(std::string("预判计算").data()), i);
 				}
 				else {
 					dyear = currentYear;
 					dmonth = currentMonth;
-					double yjll;
-					double radio;
-					double dyhz;
-					double dyks;
-					double output;
+					double yjll=0;
+					double radio=0;
+					double dyhz=0;
+					double dyks=0;
+					double output=0;
 					QString syb;
 					double alldata = 0;
 					int ncount = 3;
@@ -672,7 +699,6 @@ void service::predictcurrentMonth4(ExcelDataServer* server) {
 		}
 	}
 }
-
 
 
 //---------------------------------年度计算------------------------------------
@@ -1164,7 +1190,6 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 				}
 				else {
 					int diff = 3;
-					double output;
 					int dyear = currentYear;
 					int dmonth = nextmonth;
 					bool isok = false;
@@ -1181,8 +1206,8 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 					if (isok) {
 						double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-						double qhljz;
-						double wyyjll;
+						double qhljz=0;
+						double wyyjll=0;
 						int dyear = currentYear;
 						int dmonth = nextmonth;
 						int count = 0;
@@ -1251,11 +1276,11 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 					else {
 						dyear = currentYear;
 						dmonth = nextmonth;
-						double yjll;
-						double radio;
-						double dyhz;
-						double dyks;
-						double output;
+						double yjll=0;
+						double radio=0;
+						double dyhz=0;
+						double dyks=0;
+						double output=0;
 						QString syb;
 						double alldata = 0;
 						int ncount = 3;
@@ -1335,6 +1360,208 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 	}
 }
 
+
+//---------------------------------------当前未来月预判---------------------------------
+//权益应收款回款（绝对值）
+void service::predictCurrentNextMonth1(ExcelDataServer* server) {
+	for (int nextmonth = currentMonth; nextmonth <= 12; nextmonth++) {
+		for (int tempi = this->startRow; tempi <= this->endRow; tempi++) {
+			double qcqykjysk = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("期初权益口径应收款").data()), tempi).toDouble();
+			double radio = 0;
+			QString xmlx = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
+				+ constMonth + QString::fromLocal8Bit(std::string("项目类型").data()), tempi).toString();
+			if (xmlx.compare(QString::fromLocal8Bit(std::string("首开类").data())) == 0) {
+				QString cshx = server->getCellData(QString::fromLocal8Bit(std::string("城市环线").data()), tempi).toString();
+				if (cshx.compare(QString::fromLocal8Bit(std::string("二线").data())) == 0|| cshx.compare(QString::fromLocal8Bit(std::string("一线").data())) == 0)
+				{
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.38;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.7;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.5;
+					}
+					else {
+						radio = 1;
+					}
+				}
+				else if (cshx.compare(QString::fromLocal8Bit(std::string("三线").data())) == 0) {
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.45;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.7;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.6;
+					}
+					else {
+						radio = 1;
+					}
+				}
+				else if (cshx.compare(QString::fromLocal8Bit(std::string("四线").data())) == 0 || cshx.compare(QString::fromLocal8Bit(std::string("五线").data())) == 0) {
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.35;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.7;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.5;
+					}
+					else {
+						radio = 1;
+					}
+				}
+			}
+			else if (xmlx.compare(QString::fromLocal8Bit(std::string("续销类").data())) == 0 || xmlx.compare(QString::fromLocal8Bit(std::string("加推类").data())) == 0) {		
+				QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+				if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+					radio = 0.33;
+				}
+				else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+				{
+					radio = 0.32;
+				}
+				else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+					radio = 0.4;
+				}
+				else {
+					radio = 1;
+				}
+			}
+			server->writedata(QVariant(radio*qcqykjysk), QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("权益应收款回款（绝对值）").data()), tempi);
+		}
+	}
+}
+
+//签约回款（绝对值）
+void service::predictCurrentNextMonth2(ExcelDataServer* server) {
+	for (int nextmonth = currentMonth; nextmonth <= 12; nextmonth++) {
+		for (int tempi = this->startRow; tempi <= this->endRow; tempi++) {
+			
+			double ypjs = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi).toDouble();
+			double gqbl = server->getCellData(QString::fromLocal8Bit(std::string("股权比例").data()), tempi).toDouble();
+			double radio = 0;
+			QString xmlx = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
+				+ constMonth + QString::fromLocal8Bit(std::string("项目类型").data()), tempi).toString();
+			if (xmlx.compare(QString::fromLocal8Bit(std::string("首开类").data())) == 0) {
+				QString cshx = server->getCellData(QString::fromLocal8Bit(std::string("城市环线").data()), tempi).toString();
+				if (cshx.compare(QString::fromLocal8Bit(std::string("一线").data())) == 0 ||cshx.compare(QString::fromLocal8Bit(std::string("二线").data())) == 0)
+				{
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.38;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.7;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.5;
+					}
+					else {
+						radio = 1;
+					}
+				}
+				else if (cshx.compare(QString::fromLocal8Bit(std::string("三线").data())) == 0) {
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.45;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.7;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.6;
+					}
+					else {
+						radio = 1;
+					}
+				}
+				else if (cshx.compare(QString::fromLocal8Bit(std::string("四线").data())) == 0 || cshx.compare(QString::fromLocal8Bit(std::string("五线").data())) == 0) {
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.35;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.7;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.5;
+					}
+					else {
+						radio = 1;
+					}
+				}
+			}
+			else if (xmlx.compare(QString::fromLocal8Bit(std::string("续销类").data())) == 0 || xmlx.compare(QString::fromLocal8Bit(std::string("加推类").data())) == 0) {
+				QString cshx = server->getCellData(QString::fromLocal8Bit(std::string("城市环线").data()), tempi).toString();
+				if (cshx.compare(QString::fromLocal8Bit(std::string("二线").data())) == 0|| cshx.compare(QString::fromLocal8Bit(std::string("一线").data())) == 0)
+				{
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.45;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.6;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.59;
+					}
+					else {
+						radio = 1;
+					}
+				}
+				else if (cshx.compare(QString::fromLocal8Bit(std::string("三线").data())) == 0) {
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.43;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.53;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.5;
+					}
+					else {
+						radio = 1;
+					}
+				}
+				else if (cshx.compare(QString::fromLocal8Bit(std::string("四线").data())) == 0 || cshx.compare(QString::fromLocal8Bit(std::string("五线").data())) == 0) {
+					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
+					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
+						radio = 0.39;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0)
+					{
+						radio = 0.5;
+					}
+					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
+						radio = 0.5;
+					}
+					else {
+						radio = 1;
+					}
+				}
+			}
+			server->writedata(QVariant(radio*gqbl*ypjs), QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("签约回款（绝对值）").data()), tempi);
+		}
+	}
+}
+
 //任务提交
 void service::confirm(ExcelDataServer* excelServer) {
 	//19年1月期初库存+19年1月供货     19年1月可售
@@ -1393,6 +1620,13 @@ void service::confirm(ExcelDataServer* excelServer) {
 	predictNextMonth5(excelServer);
 
 
+	//权益应收款回款（绝对值）
+	predictCurrentNextMonth1(excelServer);
+	//签约回款（绝对值）
+	predictCurrentNextMonth2(excelServer);
+
+
+	calCurrentFutureMonth(QString::fromLocal8Bit(std::string("./input/13未来月-当前月预判.txt").data()), excelServer);
 	calFutureMonth(QString::fromLocal8Bit(std::string("./input/13未来月-趋势.txt").data()), excelServer);
 
 

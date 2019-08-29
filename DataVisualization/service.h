@@ -23,6 +23,7 @@ public:
 	void calHistary(QString filepath, ExcelDataServer* dataServer);
 	void calYear(QString filepath, ExcelDataServer* dataServer);
 	void calFutureMonth(QString filepath, ExcelDataServer* dataServer);
+	void calCurrentFutureMonth(QString filepath, ExcelDataServer* dataServer);
 
 	void predictcurrentMonth1(ExcelDataServer* server);
 	void predictcurrentMonth2(ExcelDataServer* server);
@@ -45,6 +46,10 @@ public:
 	void yearPredict5(ExcelDataServer* server);
 	void yearPredict6(ExcelDataServer* server);
 	
+	void predictCurrentNextMonth1(ExcelDataServer* server);
+	void predictCurrentNextMonth2(ExcelDataServer* server);
+
+
 	void setStartRow(int);
 	void setEndRow(int);
 	int getStartRow();
