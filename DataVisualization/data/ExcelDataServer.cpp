@@ -686,7 +686,7 @@ void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 
 	getColumnSpecifyData(exportColumn, exportData);
 
-	for (int i = tempValue.toList().size()-1; i >= 0; --i)
+	for (int i = 3; i >= 0; --i)
 	{
 		exportData.push_front(tempValue.toList().at(i).toList());
 	}
@@ -779,8 +779,7 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 			}
 		}
 		
-
-
+		//append current row export data.
 		QList<QVariant> curr;
 		for (auto index : exportIndexs)
 		{
