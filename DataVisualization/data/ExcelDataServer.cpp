@@ -670,8 +670,23 @@ void ExcelDataServer::exportSheet(const QList<QList<QVariant>>& exportData, cons
 	writeArea(newSheet, exportData);
 }
 
+void ExcelDataServer::setRowColor(QAxObject* sheet, int columns)
+{
+	for (auto iter : colorRows)
+	{
+		printf("line : %d ... ...\n", iter.first + 5);
+		for (int i = 1; i <= columns; ++i)
+		{
+			QAxObject* cell = sheet->querySubObject("Cells(int, int)", iter.first + 5, i);
+			QAxObject* interior = cell->querySubObject("Interior");
+			interior->setProperty("Color", color.find(iter.second)->second);   //设置单元格背景色
+		}
+	}
+}
+
 void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 {
+	colorRows.clear();
 	QAxObject* tempBook = openExcelFile(templatePath);
 	if (!tempBook)
 	{
@@ -701,11 +716,14 @@ void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 
 	writeArea(templateSheet, exportData);
 
+
+	setRowColor(templateSheet, exportData.at(0).size());
 	tempBook->dynamicCall("Save()");
 	
 	tempBook->dynamicCall("Close(Boolean)", false);
 	delete tempBook;
 }
+
 
 //add to column4
 //事业部（住开 / 商开）change add 总计
@@ -740,7 +758,7 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 	//add group summary.
 	exportData.push_back(getInsertRow(std::vector<QVariant>{}, -1, exportIndexs.size()));
 	exportData[0][4] = QVariant(0);
-
+	colorRows.insert(std::pair<int, int >{0, -1});
 	int end = endRow.toInt();
 	//traverse all data row
 	for (int row = beginRow.toInt() - 1; row < end; ++row){
@@ -769,10 +787,12 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 				sumWriteRow = cacheLastTopHeaderRowIndex[j];
 				for (int index : sumColumn)
 				{
+
 					//sumWriteRow 3, should be 23
 					exportData[sumWriteRow][index] = QVariant(sum[index]);
 					if(j == 0)
 						exportData[0].replace(index,QVariant(exportData[0][index].toDouble() + sum[index]));
+					colorRows.insert(std::pair<int, int>{sumWriteRow, j});
 				}
 				//if(cacheTopHeaderName[j] == QStringLiteral(""))
 			}

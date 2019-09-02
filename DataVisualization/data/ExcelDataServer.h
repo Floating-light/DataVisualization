@@ -1,15 +1,35 @@
 #pragma once
 #include <vector>
 #include <limits>
+#include <map>
 #include "data/DataServer.h"
 #include <QVector>
 #include <QChar>
 #include <QMessageBox>
+
+enum SummaryType
+{
+	Grounp,
+	BU, //business unit
+	Region,
+	Company
+};
+
+const std::map<int, QColor> color{
+	{-1, QColor(196, 215, 155)},
+	{0, QColor(83, 141, 213)},
+	{1, QColor(141, 180, 226)},
+	{2, QColor(220, 230, 241)},
+};
+
 class ExcelDataServer : public DataServer
 {
 public:
 	ExcelDataServer();
 	~ExcelDataServer();
+
+	//first : rows number, second : color type;
+	std::map<int, int> colorRows;
 
 	QVariant allData;
 	std::vector<std::vector<QVariant>> sheetContent;
@@ -99,6 +119,8 @@ public:
 		const std::vector<int>& sumColumn, int changedHeader,const QString& name);
 	bool isPureDigit(const QString& str);
 	void sumSkipColumn(const std::vector<QVariant>&checkColumn, const std::vector<int>& exportIndexs, std::vector<int>& sumColumn);
+
+	void setRowColor(QAxObject* sheet, int columns);
 private:
 	QAxObject* excelApp;
 
