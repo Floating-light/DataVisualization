@@ -6,6 +6,8 @@
 #include <qdebug.h>
 #include <limits>
 #include <QMap>
+#include "Parameter.h"
+
 using namespace std;
 
 class service
@@ -59,5 +61,6 @@ public:
 private:
 	int startRow;
 	int endRow;
+	Parameter * parameter;
 };
 

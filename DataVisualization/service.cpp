@@ -2,12 +2,15 @@
 #include <QString>
 #include <QDate>
 
+#include "Parameter.h"
+
 QDate D1 = QDate::currentDate();
 int startYear = 19;
 const int currentYear = D1.year() - 2000;//获取年
 const int currentMonth = D1.month();
 const QString constYear = QString::fromLocal8Bit(std::string("年").data());
 const QString constMonth = QString::fromLocal8Bit(std::string("月").data());
+
 
 //--------------------------------------构造--------------------------------------------
 service::service()
@@ -18,11 +21,12 @@ service::service(int start, int end)
 {
 	startRow = start;
 	endRow = end;
+	parameter = new Parameter();
 }
 
 service::~service()
 {
-
+	delete parameter;
 }
 
 //-------------------------------------基础方法------------------------------------------
@@ -308,28 +312,28 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 				if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
 					double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
-					double result = hz * 0.7;
+					double result = hz * this->parameter->getFirstOpenCommerceOpenResidence();
 					server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 				}
 				else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0) {
 					double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
-					double result = hz * 0.65;
+					double result = hz * this->parameter->getFirstOpenCommerceOpenShop();
 					server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 				}
 				else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
 					double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
-					double result = hz * 0.35;
+					double result = hz * this->parameter->getFirstOpenComemrceOpenOffice();
 					server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 				}
 				else {
 					double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
-					double result = hz * 0.35;
+					double result = hz * this->parameter->getFirstOpenComemrceOpenElse();
 					server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 				}
@@ -342,7 +346,7 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 				{
 					double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
-					double result = hz * 0.6;
+					double result = hz * this->parameter->getFirstOpenResidenceOpenUp3();
 					server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 				}
@@ -351,7 +355,7 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 				{
 					double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
-					double result = hz * 0.35;
+					double result = hz * this->parameter->getFirstOpenResidenceOpenDown4();
 					server->writedata(QVariant(result < 12000 ? result : 12000), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 				}
@@ -380,20 +384,20 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 				double radio = 0;
 				QString syb = server->getCellData(QString::fromLocal8Bit(std::string("事业部（住开/商开）").data()), i).toString();
 				if (syb.compare(QString::fromLocal8Bit(std::string("住开").data())) == 0)
-					radio = 0.5;
+					radio = this->parameter->getContinueResidence();
 				else if (syb.compare(QString::fromLocal8Bit(std::string("商开").data())) == 0) {
 					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), i).toString();
 					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data()))==0) {
-						radio = 0.6;
+						radio = this->parameter->getContinueCommerceResidence();
 					}
 					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0) {
-						radio = 0.22;
+						radio = this->parameter->getContinueCommerceShop();
 					}
 					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
-						radio = 0.5;
+						radio = this->parameter->getContinueCommerceOffice();
 					}
 					else {
-						radio = 0.35;
+						radio = this->parameter->getContinueCommerceElse();
 					}
 				}
 				double ret1 = server->getCellData(QString::number(fyear) + constYear + QString::number(fmonth) + constMonth
@@ -462,20 +466,20 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 				double radio = 0;
 				QString syb = server->getCellData(QString::fromLocal8Bit(std::string("事业部（住开/商开）").data()), i).toString();
 				if (syb.compare(QString::fromLocal8Bit(std::string("住开").data())) == 0)
-					radio = 0.5;
+					radio = this->parameter->getPlusLess3Residence();
 				else if (syb.compare(QString::fromLocal8Bit(std::string("商开").data())) == 0) {
 					QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), i).toString();
 					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data()))==0) {
-						radio = 0.6;
+						radio = this->parameter->getPlusLess3CommerceResidence();
 					}
 					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data()))==0) {
-						radio = 0.22;
+						radio = this->parameter->getPlusLess3CommerceShop();
 					}
 					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data()))==0) {
-						radio = 0.5;
+						radio = this->parameter->getPlusLess3CommerceOffice();
 					}
 					else {
-						radio = 0.35;
+						radio = this->parameter->getPlusLess3CommerceElse();
 					}
 				}
 
@@ -591,26 +595,26 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 						if (cshx.compare(QString::fromLocal8Bit(std::string("一线").data())) == 0
 							|| cshx.compare(QString::fromLocal8Bit(std::string("二线").data())) == 0
 							|| cshx.compare(QString::fromLocal8Bit(std::string("三线").data())) == 0) {
-							radio = 0.6;
+							radio = this->parameter->getPlusMore3ResidenceCityGre3();
 						}
 						else if (cshx.compare(QString::fromLocal8Bit(std::string("四线").data())) == 0
 							|| cshx.compare(QString::fromLocal8Bit(std::string("五线").data())) == 0) {
-							radio = 0.35;
+							radio = this->parameter->getPlusMore3ResidenceCityLess3();
 						}
 					}
 					else if (syb.compare(QString::fromLocal8Bit(std::string("商开").data())) == 0) {
 						QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), i).toString();
 						if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data()))==0) {
-							radio = 0.7;
+							radio = this->parameter->getPlusMore3CommerceResidence();
 						}
 						else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data()))==0) {
-							radio = 0.65;
+							radio = this->parameter->getPlusMore3CommerceStore();
 						}
 						else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data()))==0) {
-							radio = 0.35;
+							radio = this->parameter->getPlusMore3CommerceOffice();
 						}
 						else {
-							radio = 0.35;
+							radio = this->parameter->getPlusMore3CommerceElse();
 						}
 					}
 					output = yjll + radio * dyhz;
@@ -961,6 +965,11 @@ void service::predictNextMonth6(ExcelDataServer* server) {
 					QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth +
 					QString::fromLocal8Bit(std::string("项目类型").data()), tempi);
 			}
+			else {
+				server->writedata(QVariant(QString::fromLocal8Bit(std::string("").data())),
+					QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth +
+					QString::fromLocal8Bit(std::string("项目类型").data()), tempi);
+			}
 		}
 	}
 }
@@ -999,28 +1008,28 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 					if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
 						double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-						double result = hz * 0.7;
+						double result = hz * this->parameter->getFirstOpenCommerceOpenResidence();
 						server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 					}
 					else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0) {
 						double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-						double result = hz * 0.65;
+						double result = hz * this->parameter->getFirstOpenCommerceOpenShop();
 						server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 					}
 					else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) == 0) {
 						double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-						double result = hz * 0.35;
+						double result = hz * this->parameter->getFirstOpenComemrceOpenOffice();
 						server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 					}
 					else {
 						double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-						double result = hz * 0.35;
+						double result = hz * this->parameter->getFirstOpenComemrceOpenElse();
 						server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 					}
@@ -1033,7 +1042,7 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 					{
 						double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-						double result = hz * 0.6;
+						double result = hz * this->parameter->getFirstOpenResidenceOpenUp3();
 						server->writedata(QVariant(result < 50000 ? result : 50000), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 					}
@@ -1042,7 +1051,7 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 					{
 						double hz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-						double result = hz * 0.35;
+						double result = hz * this->parameter->getFirstOpenResidenceOpenDown4();
 						server->writedata(QVariant(result < 12000 ? result : 12000), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 					}
@@ -1071,20 +1080,20 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 					double radio = 0;
 					QString syb = server->getCellData(QString::fromLocal8Bit(std::string("事业部（住开/商开）").data()), tempi).toString();
 					if (syb.compare(QString::fromLocal8Bit(std::string("住开").data())) == 0)
-						radio = 0.5;
+						radio = this->parameter->getContinueResidence();
 					else if (syb.compare(QString::fromLocal8Bit(std::string("商开").data())) == 0) {
 						QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
 						if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data()))== 0) {
-							radio = 0.6;
+							radio = this->parameter->getContinueCommerceResidence();
 						}
 						else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data()))== 0) {
-							radio = 0.22;
+							radio = this->parameter->getContinueCommerceShop();
 						}
 						else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data()))== 0) {
-							radio = 0.5;
+							radio = this->parameter->getContinueCommerceOffice();
 						}
 						else {
-							radio = 0.35;
+							radio = this->parameter->getContinueCommerceElse();
 						}
 					}
 					double ret1;
@@ -1159,20 +1168,20 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 					double radio = 0;
 					QString syb = server->getCellData(QString::fromLocal8Bit(std::string("事业部（住开/商开）").data()), tempi).toString();
 					if (syb.compare(QString::fromLocal8Bit(std::string("住开").data())) == 0)
-						radio = 0.5;
+						radio = this->parameter->getPlusLess3Residence();
 					else if (syb.compare(QString::fromLocal8Bit(std::string("商开").data())) == 0) {
 						QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
 						if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) ==0) {
-							radio = 0.6;
+							radio = this->parameter->getPlusLess3CommerceResidence();
 						}
 						else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data())) == 0) {
-							radio = 0.22;
+							radio = this->parameter->getPlusLess3CommerceShop();
 						}
 						else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data())) ==0) {
-							radio = 0.5;
+							radio = this->parameter->getPlusLess3CommerceOffice();
 						}
 						else {
-							radio = 0.35;
+							radio = this->parameter->getPlusLess3CommerceElse();
 						}
 					}
 					double ret1;
@@ -1308,26 +1317,26 @@ void service::predictNextMonth8(ExcelDataServer* server) {
 							if (cshx.compare(QString::fromLocal8Bit(std::string("一线").data())) == 0
 								|| cshx.compare(QString::fromLocal8Bit(std::string("二线").data())) == 0
 								|| cshx.compare(QString::fromLocal8Bit(std::string("三线").data())) == 0) {
-								radio = 0.6;
+								radio = this->parameter->getPlusMore3ResidenceCityGre3();
 							}
 							else if (cshx.compare(QString::fromLocal8Bit(std::string("四线").data())) == 0
 								|| cshx.compare(QString::fromLocal8Bit(std::string("五线").data())) == 0) {
-								radio = 0.35;
+								radio = this->parameter->getPlusMore3ResidenceCityLess3();
 							}
 						}
 						else if (syb.compare(QString::fromLocal8Bit(std::string("商开").data())) == 0) {
 							QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
 							if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data()))==0) {
-								radio = 0.7;
+								radio = this->parameter->getPlusMore3CommerceResidence();
 							}
 							else if (yt.compare(QString::fromLocal8Bit(std::string("商铺").data()))==0) {
-								radio = 0.65;
+								radio = this->parameter->getPlusMore3CommerceStore();
 							}
 							else if (yt.compare(QString::fromLocal8Bit(std::string("公寓/办公").data()))==0) {
-								radio = 0.35;
+								radio = this->parameter->getPlusMore3CommerceOffice();
 							}
 							else {
-								radio = 0.35;
+								radio = this->parameter->getPlusMore3CommerceElse();
 							}
 						}
 						output = yjll + radio * dyhz;
@@ -1422,7 +1431,7 @@ void service::predictCurrentNextMonth1(ExcelDataServer* server) {
 					}
 				}
 			}
-			else if (xmlx.compare(QString::fromLocal8Bit(std::string("续销类").data())) == 0 || xmlx.compare(QString::fromLocal8Bit(std::string("加推类").data())) == 0) {		
+			else {		
 				QString yt = server->getCellData(QString::fromLocal8Bit(std::string("业态").data()), tempi).toString();
 				if (yt.compare(QString::fromLocal8Bit(std::string("住宅").data())) == 0) {
 					radio = 0.33;
@@ -1446,8 +1455,7 @@ void service::predictCurrentNextMonth1(ExcelDataServer* server) {
 //签约回款（绝对值）
 void service::predictCurrentNextMonth2(ExcelDataServer* server) {
 	for (int nextmonth = currentMonth; nextmonth <= 12; nextmonth++) {
-		for (int tempi = this->startRow; tempi <= this->endRow; tempi++) {
-			
+		for (int tempi = this->startRow; tempi <= this->endRow; tempi++) {			
 			double ypjs = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi).toDouble();
 			double gqbl = server->getCellData(QString::fromLocal8Bit(std::string("股权比例").data()), tempi).toDouble();
 			double radio = 0;
@@ -1505,7 +1513,7 @@ void service::predictCurrentNextMonth2(ExcelDataServer* server) {
 					}
 				}
 			}
-			else if (xmlx.compare(QString::fromLocal8Bit(std::string("续销类").data())) == 0 || xmlx.compare(QString::fromLocal8Bit(std::string("加推类").data())) == 0) {
+			else {
 				QString cshx = server->getCellData(QString::fromLocal8Bit(std::string("城市环线").data()), tempi).toString();
 				if (cshx.compare(QString::fromLocal8Bit(std::string("二线").data())) == 0|| cshx.compare(QString::fromLocal8Bit(std::string("一线").data())) == 0)
 				{
@@ -1639,5 +1647,5 @@ void service::confirm(ExcelDataServer* excelServer) {
 
 
 	calYear(QString::fromLocal8Bit(std::string("./input/15年度-趋势.txt").data()), excelServer);
-	//******************************************************************************************8*******
+	//*************************************************************************************************
 }
