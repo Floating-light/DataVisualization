@@ -539,7 +539,8 @@ void ExcelDataServer::int2Alphabet(int number, QString& alphabet)
 	}
 	else
 	{
-		alphabet += char(64 + number);
+		//alphabet += char(64 + number);
+		alphabet.push_front(char(64 + number));
 	}
 }
 
@@ -778,10 +779,13 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 		}
 		
 		//check if top three header change
+		bool falgs = false;
 		for (int i = 0; i < cacheTopHeaderName.size(); ++i)
 		{
-			if (currentRow[i].toString() != cacheTopHeaderName[i])
+			if (currentRow[i].toString() != cacheTopHeaderName[i] || falgs)
 			{
+				if (i == 0)
+					falgs = true;
 				if (changeBegin == -1)
 					changeBegin = i;
 				exportData.push_back(getInsertRow(currentRow, i, exportIndexs.size()));
