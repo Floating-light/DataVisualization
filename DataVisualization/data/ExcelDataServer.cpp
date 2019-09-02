@@ -21,8 +21,10 @@ void ExcelDataServer::initExcelAppAndWorksheet()
 //释放Excel对象
 void ExcelDataServer::freeExcel()
 {
-	excelWorkbooks->dynamicCall("Close()");
-	excelApp->dynamicCall("Quit()");
+	if(excelWorkbooks)
+	    excelWorkbooks->dynamicCall("Close()");
+	if(excelApp)
+	    excelApp->dynamicCall("Quit()");
 }
 
 QAxObject* ExcelDataServer::openExcelFile(const QString& filePath)
@@ -711,6 +713,7 @@ void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 	QList<QList<QVariant>>& exportData)
 {
+	
 	//convert string header name to int subscript
 	std::vector<int> exportIndexs;
 	for (auto s : exportHeader)
@@ -725,12 +728,17 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 		exportIndexs.push_back(iter->second);
 	}
 
+
 	//cache previous top three header 
 	std::vector<QString>cacheTopHeaderName{ "","","" };
 	std::vector<int>cacheLastTopHeaderRowIndex{ -1,-1,-1 };
 
 	std::vector<int> sumColumn;
 	sumSkipColumn(sheetContent[beginRow.toInt() - 1], exportIndexs, sumColumn);
+
+	//add group summary.
+	exportData.push_back(getInsertRow(std::vector<QVariant>{}, -1, exportIndexs.size()));
+	exportData[0][4] = QVariant(0);
 
 	int end = endRow.toInt();
 	//traverse all data row
@@ -762,7 +770,10 @@ void ExcelDataServer::getColumnSpecifyData(const QVariantList& exportHeader,
 				{
 					//sumWriteRow 3, should be 23
 					exportData[sumWriteRow][index] = QVariant(sum[index]);
+					if(j == 0)
+						exportData[0].replace(index,QVariant(exportData[0][index].toDouble() + sum[index]));
 				}
+				//if(cacheTopHeaderName[j] == QStringLiteral(""))
 			}
 		}
 		
@@ -801,6 +812,8 @@ QList<QVariant> ExcelDataServer::getInsertRow(const std::vector<QVariant>& cache
 	int changedIndex, int columnNumber)
 {
 	QList<QVariant> extraRow;
+	if (changedIndex == -1)
+		extraRow.push_back(QVariant(QStringLiteral("集团")));
 	for (int i = 0; i <= changedIndex; ++i)//push previous header
 	{
 		extraRow.push_back(cache[i]);
@@ -813,6 +826,9 @@ QList<QVariant> ExcelDataServer::getInsertRow(const std::vector<QVariant>& cache
 	
 	switch (changedIndex)//... ...
 	{
+	case -1:
+		extraRow.push_back(QStringLiteral("汇总"));
+		break;
 	case 0:
 		extraRow.push_back(QStringLiteral("总计"));
 		break;
@@ -856,13 +872,10 @@ std::vector<double> ExcelDataServer::excuteSummation(const QList<QList<QVariant>
 			{
 				sum[index] += currentRow[index].toDouble();
 			}
-
 			currentRow = exportData[--rowIndex];
 		}
-
 		return sum;
 	}
-	
 }
 
 std::vector<double> ExcelDataServer::mergeSummation(const QList<QList<QVariant>>& exportData,
@@ -896,7 +909,6 @@ std::vector<double> ExcelDataServer::mergeSummation(const QList<QList<QVariant>>
 			}
 		}
 	}
-
 	return sum;
 }
 

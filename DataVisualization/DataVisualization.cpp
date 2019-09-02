@@ -30,7 +30,8 @@ DataVisualization::DataVisualization(QWidget* parent)
 DataVisualization::~DataVisualization()
 {
 	saveFile();
-	excelServer->freeExcel();
+	if(excelServer)
+	    excelServer->freeExcel();
 }
 void DataVisualization::saveFile()
 {
