@@ -26,7 +26,7 @@ service::service(int start, int end)
 
 service::~service()
 {
-	delete parameter;
+	//delete parameter;
 }
 
 //-------------------------------------»ù´¡·½·¨------------------------------------------
