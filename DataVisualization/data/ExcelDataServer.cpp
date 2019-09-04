@@ -1,6 +1,7 @@
 ﻿#include "data/ExcelDataServer.h"
 #include <stack>
 #include <math.h>
+#include <time.h>
 ExcelDataServer::ExcelDataServer()
 {
 	initExcelAppAndWorksheet();
@@ -672,6 +673,8 @@ void ExcelDataServer::exportSheet(const QList<QList<QVariant>>& exportData, cons
 
 void ExcelDataServer::setRowColor(QAxObject* sheet, int columns)
 {
+	clock_t begin = clock();
+
 	for (auto iter : colorRows)
 	{
 		printf("line : %d ... ...\n", iter.first + 5);
@@ -680,8 +683,13 @@ void ExcelDataServer::setRowColor(QAxObject* sheet, int columns)
 			QAxObject* cell = sheet->querySubObject("Cells(int, int)", iter.first + 5, i);
 			QAxObject* interior = cell->querySubObject("Interior");
 			interior->setProperty("Color", color.find(iter.second)->second);   //设置单元格背景色
+			delete interior;
+			delete cell;
 		}
 	}
+	clock_t end = clock();
+	printf("set color total time : %f s.\n", double(end - begin) / CLOCKS_PER_SEC);
+
 }
 
 void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
