@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 ExcelDataServer::ExcelDataServer()
+	:error_count(0)
 {
 	initExcelAppAndWorksheet();
 }
@@ -616,7 +617,18 @@ QVariant ExcelDataServer::getCellData(const QString& name, int row)
 	auto iter = nameToSubScript.find(name);
 	if (iter == nameToSubScript.end())
 	{
-		printf("--------->>>Can not find field : %s\n", qPrintable(name));
+		//printf("--------->>>Can not find field : %s\n", qPrintable(name));
+		if (error_count == 0)
+		{
+			++error_count;
+			QMessageBox* box = new QMessageBox(QMessageBox::Information, QStringLiteral("错误"), QStringLiteral("找不到字段：") + name);
+			box->show();
+			connect(box, &QMessageBox::buttonClicked, [this](QAbstractButton*) {
+				--this->error_count;
+				});
+			QCoreApplication::processEvents();
+		}
+
 		return QVariant();
 	}
 		

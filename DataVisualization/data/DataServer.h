@@ -1,8 +1,9 @@
 #pragma once
 #include <ActiveQt/qaxobject.h>
 
-class DataServer
+class DataServer:public QObject
 {
+	Q_OBJECT
 public:
 	virtual ~DataServer()
 	{

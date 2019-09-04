@@ -6,7 +6,8 @@
 #include <QVector>
 #include <QChar>
 #include <QMessageBox>
-
+#include <QCoreApplication>
+#include <QAbstractButton>
 enum SummaryType
 {
 	Grounp,
@@ -24,10 +25,11 @@ const std::map<int, QColor> color{
 
 class ExcelDataServer : public DataServer
 {
+	Q_OBJECT
 public:
 	ExcelDataServer();
 	~ExcelDataServer();
-
+	int error_count;
 	//first : rows number, second : color type;
 	std::map<int, int> colorRows;
 
