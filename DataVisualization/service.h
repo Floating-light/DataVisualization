@@ -39,7 +39,6 @@ public:
 	void predictNextMonth5(ExcelDataServer* server);
 	void predictNextMonth6(ExcelDataServer* server); 
 	void predictNextMonth7(ExcelDataServer* server);
-	void predictNextMonth8(ExcelDataServer* server);
 
 	void yearPredict1(ExcelDataServer* server);
 	void yearPredict2(ExcelDataServer* server);
