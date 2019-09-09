@@ -411,36 +411,74 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 					+ constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 			}
 			else {
-				int count = 0;
-				int remain = 3;
-				double output = 0;
+				int diff = 3;
 				int dyear = currentYear;
 				int dmonth = currentMonth;
-				while (remain > 0) {
+				bool isok = false;
+				while (diff > 0) {
 					dmonth--;
-					if (dmonth == 0 ||dmonth+(currentYear-fyear)*12-fmonth<=0)
-						break;
 					double ret1 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 						+ constMonth + QString::fromLocal8Bit(std::string("供货").data()), i).toDouble();
-					if (ret1 == 0)
-					{
+					if (ret1 > 0.000001) {
+						isok = true;
+						break;
+					}
+					diff--;
+				}
+				if (isok) {
+					int count = 0;
+					int remain = 3;
+					double output = 0;
+					int dyear = currentYear;
+					int dmonth = currentMonth;
+					while (remain > 0) {
+						dmonth--;
 						double ret2 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("签约已达成").data()), i).toDouble();
 						output += ret2;
-						count++;	
+						count++;
 						remain -= 1;
 					}
-				}
-				double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth) + constMonth
-					+ QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
-				double dyqyydc = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth) + constMonth
-					+ QString::fromLocal8Bit(std::string("签约已达成").data()), i).toDouble();
-				if (count == 0)
-					server->writedata(QVariant(dyqyydc), QString::number(currentYear) + constYear + QString::number(currentMonth)
-						+ constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
-				else
-					server->writedata(QVariant(max(dyqyydc, min(dyhz, output / count))), QString::number(currentYear) + constYear
+					double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth) + constMonth
+						+ QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
+					double dyqyydc = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth) + constMonth
+						+ QString::fromLocal8Bit(std::string("签约已达成").data()), i).toDouble();
+					server->writedata(QVariant(max(dyqyydc, min(dyhz*0.8, output / count))), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
+				}
+				else {
+					double qhljz = 0;
+					int dyear = currentYear;
+					int dmonth = currentMonth;
+					int count = 0;
+					int calcount = 3;
+					double output = 0;
+					while (calcount>0) {
+						dmonth -= 1;
+						double qhl = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
+							+ constMonth + QString::fromLocal8Bit(std::string("去化率").data()), i).toDouble();
+						if (qhl > 0.000001)
+						{
+							output += qhl;
+							count++;
+						}
+						calcount--;
+					}
+					if (count > 0) {
+						qhljz = output / count;
+					}
+					else {
+						qhljz = 0;
+					}
+
+					double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth)
+						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
+					double dyqyydc = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth) + constMonth
+						+ QString::fromLocal8Bit(std::string("签约已达成").data()), i).toDouble();
+					server->writedata(QVariant(max(dyqyydc, min(dyhz*0.8, qhljz))), QString::number(currentYear) + constYear
+						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
+
+				}
 			}
 		}
 		else if (xmlx.compare(QString::fromLocal8Bit(std::string("加推类").data())) == 0) {
@@ -1101,19 +1139,28 @@ void service::predictNextMonth6(ExcelDataServer* server) {
 						+ constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 				}
 				else {
-					int count = 0;
-					int remain = 3;
-					double output = 0;
+					int diff = 3;
 					int dyear = currentYear;
 					int dmonth = nextmonth;
-					while (remain > 0) {
+					bool isok = false;
+					while (diff > 0) {
 						dmonth--;
-						if (dmonth == 0 || dmonth + 12 * (currentYear - fyear) <= fmonth)
-							break;
 						double ret1 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
 							+ constMonth + QString::fromLocal8Bit(std::string("供货").data()), tempi).toDouble();
-						if (ret1 == 0)
-						{
+						if (ret1 > 0.000001) {
+							isok = true;
+							break;
+						}
+						diff--;
+					}
+					if (isok) {
+						int count = 0;
+						int remain = 3;
+						double output = 0;
+						int dyear = currentYear;
+						int dmonth = nextmonth;
+						while (remain > 0) {
+							dmonth--;
 							double ret2;
 							if (dmonth<currentMonth)
 								ret2 = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
@@ -1125,15 +1172,51 @@ void service::predictNextMonth6(ExcelDataServer* server) {
 							count++;
 							remain -= 1;
 						}
-					}
-					double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth
-						+ QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
-					if (count == 0)
-						server->writedata(QVariant(0), QString::number(currentYear) + constYear + QString::number(nextmonth)
-							+ constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
-					else
-						server->writedata(QVariant(min(dyhz, output / count)), QString::number(currentYear) + constYear
+						double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth) + constMonth
+							+ QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
+						
+						server->writedata(QVariant(min(dyhz*0.8, output / count)), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
+					}
+					else {
+						double dyhz = server->getCellData(QString::number(currentYear) + constYear + QString::number(nextmonth)
+							+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
+						double qhljz = 0;
+						int dyear = currentYear;
+						int dmonth = nextmonth;
+						int count = 0;
+						int calcount = 3;
+						double output = 0;
+						while (calcount>0) {
+							dmonth -= 1;
+							double qhl;
+							if (dmonth<currentMonth)
+								qhl = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
+									+ constMonth + QString::fromLocal8Bit(std::string("去化率").data()), tempi).toDouble();
+							else
+							{
+								double ypjs = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
+									+ constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi).toDouble();
+								double ks = server->getCellData(QString::number(dyear) + constYear + QString::number(dmonth)
+									+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), tempi).toDouble();
+								qhl = ypjs / ks;
+							}
+							if (qhl >0.000001)
+							{
+								output += qhl;
+								count++;
+							}
+							calcount--;
+						}
+						if (count > 0) {
+							qhljz = output / count;
+						}
+						else {
+							qhljz = 0;
+						}
+						server->writedata(QVariant(min(dyhz*0.8, qhljz)), QString::number(currentYear) + constYear
+							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
+					}
 				}
 			}
 			else if (xmlx.compare(QString::fromLocal8Bit(std::string("加推类").data())) == 0) {
