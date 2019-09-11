@@ -18,12 +18,16 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
+#include "MyCombbox.h"
+
 QT_BEGIN_NAMESPACE
 
 struct ItemSelectCombox
 {
 	QLabel* label;
-	QComboBox* content;
+	MyCombbox* content;
+	QListWidget * alist;
 };
 
 class Ui_DataVisualizationClass
@@ -46,6 +50,7 @@ public:
 	QAction* calculate;
 	QAction* saveFile;
 	QAction* templateExport;
+	QAction* savePic;
 
 	std::vector<QAction*> exportActions;
 
@@ -74,6 +79,7 @@ public:
 		calculate = new QAction(DataVisualizationClass);
 		saveFile = new QAction(DataVisualizationClass);
 		templateExport = new QAction(DataVisualizationClass);
+		savePic = new QAction(DataVisualizationClass);
 
         menuBar = new QMenuBar(DataVisualizationClass);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
@@ -97,6 +103,7 @@ public:
 		menuExport = new QMenu(menuBar);
 		menuExport->setObjectName(QString::fromUtf8("menuEdit"));
 		menuExport->addAction(templateExport);
+		menuExport->addAction(savePic);
 
 		menuBar->addAction(menuExport->menuAction());
 
@@ -112,6 +119,7 @@ public:
 		mainToolBar->addAction(calculate);
 		mainToolBar->addAction(saveFile);
 		mainToolBar->addAction(templateExport);
+		mainToolBar->addAction(savePic);
 
 		topCombox = new QHBoxLayout();
 		topCombox->setAlignment(Qt::AlignLeft);
@@ -120,7 +128,7 @@ public:
 
 		chartLineEdit = new QLineEdit();
 		chartLineEdit->setPlaceholderText(QStringLiteral("请输入图表所需要展示的表头"));
-		chartLineEdit->setText(QStringLiteral("19年年度供货,19年年度可售"));
+		chartLineEdit->setText(QStringLiteral("19年1月供货,19年2月供货;1月环比对比,2月环比对比;环比对比图"));
 
 		mainVLayout = new QVBoxLayout();
 		mainVLayout->addWidget(chartLineEdit);
@@ -181,6 +189,9 @@ public:
 
 		templateExport->setText(QStringLiteral("模板导出"));
 		templateExport->setIcon(QIcon("./Resources/export.png"));//saveFile
+
+		savePic->setText(QStringLiteral("保存图片"));
+		savePic->setIcon(QIcon("./Resources/download.png"));//savePic
 
 		menuFile->setTitle(QString::fromLocal8Bit(std::string("文件").data()));
 		menuEdit->setTitle(QString::fromLocal8Bit(std::string("视图").data()));

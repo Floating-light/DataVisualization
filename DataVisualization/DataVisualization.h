@@ -38,7 +38,7 @@
 #include "data/ExcelDataServer.h"
 #include "service.h"
 #include <QMessageBox>
-
+#include "MyCombbox.h"
 QT_BEGIN_NAMESPACE
 class QComboBox;
 class QCheckBox;
@@ -62,9 +62,7 @@ typedef QList<DataList> DataTable;
 
 constexpr auto excelFilePath = "C:/fileds.xlsx";
 
-const std::vector<QString> selectHeaderName{QStringLiteral("事业部\n（住开/商开）"),
-    QStringLiteral("大区\n（南/中/北）"),QStringLiteral("城市公司"),
-	QStringLiteral("项目名称"),QStringLiteral("项目编号"),QStringLiteral("业态"),QStringLiteral("城市环线") };
+const std::vector<QString> selectHeaderName{QStringLiteral("事业部\n（住开/商开）"),  QStringLiteral("项目名称") };
 
 class DataVisualization : public QMainWindow
 {
@@ -93,13 +91,14 @@ public:
 	void uniqueItem(const QString& headerName, std::vector<QString>& items);
 
 	void addSelectCombox(const QString& headerName);
-	ItemSelectCombox* createSelectCombox(const QString& headerName);
+	ItemSelectCombox* createSelectCombox(const QString& headerName, int v);
 	
 	void filterItem();
+	
 	void initExportenu();
 	void doExport();
 	void templateExport();
-
+	void picExport();
 	void displayScatterChart();
 	void displayLineChart();
 	void displayBarChart();
@@ -108,7 +107,8 @@ public:
 public slots:
 	void buttonPress();
 	void checkBoxchange(int state);
-	void comboxChanged(const QString& text);
+	void comboxChanged(const QString&);
+	void onCurrentIndexChanged(int index);
 
 private:
 

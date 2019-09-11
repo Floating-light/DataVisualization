@@ -475,7 +475,7 @@ void service::predictcurrentMonth2(ExcelDataServer* server) {
 						+ constMonth + QString::fromLocal8Bit(std::string("可售").data()), i).toDouble();
 					double dyqyydc = server->getCellData(QString::number(currentYear) + constYear + QString::number(currentMonth) + constMonth
 						+ QString::fromLocal8Bit(std::string("签约已达成").data()), i).toDouble();
-					server->writedata(QVariant(max(dyqyydc, min(dyhz*0.8, qhljz))), QString::number(currentYear) + constYear
+					server->writedata(QVariant(max(dyqyydc, min(dyhz*0.8, dyhz*qhljz))), QString::number(currentYear) + constYear
 						+ QString::number(currentMonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), i);
 
 				}
@@ -1214,7 +1214,7 @@ void service::predictNextMonth6(ExcelDataServer* server) {
 						else {
 							qhljz = 0;
 						}
-						server->writedata(QVariant(min(dyhz*0.8, qhljz)), QString::number(currentYear) + constYear
+						server->writedata(QVariant(min(dyhz*0.8, dyhz*qhljz)), QString::number(currentYear) + constYear
 							+ QString::number(nextmonth) + constMonth + QString::fromLocal8Bit(std::string("预判计算").data()), tempi);
 					}
 				}
