@@ -1,4 +1,5 @@
 ﻿#include "DataVisualization.h"
+#include "charttip.h"
 
 DataVisualization::DataVisualization(QWidget* parent)
 	: QMainWindow(parent),
@@ -213,34 +214,73 @@ QChart* DataVisualization::createScatterChart()
 
 QChart* DataVisualization::createScatterChartTwo()
 {
-	updataChartData();
 	Q_ASSERT(m_dataTable.size() > 1);
 	// scatter chart
-	QChart* chart = new QChart();
-	chart->setTitle(QStringLiteral("散点图"));
+	QString content = ui.chartLineEdit->text();
+	QStringList stringLists = content.split(';');
+	QString title = stringLists[1];
 
+	QChart* chart = new QChart();
+	//chart->setTitle(title);
+	chart->legend()->hide();
 	DataList dataList_x = m_dataTable[0];
 	DataList dataList_y = m_dataTable[1];
+
+	mytips.clear();
+	double valueMaxX = std::numeric_limits<double>::min();
+	double valueMinX = std::numeric_limits<double>::max();
+
+	double valueMaxY = std::numeric_limits<double>::min();
+	double valueMinY = std::numeric_limits<double>::max();
 
 	QScatterSeries* series = new QScatterSeries(chart);
 	for (int i = 0; i < dataList_x.size(); ++i)
 	{
-		dataList_x.at(i).first.y();
+		dataList_x.at(i).first.y() > valueMaxX ? (valueMaxX = dataList_x.at(i).first.y()) : true;
+		dataList_x.at(i).first.y()< valueMinX ? (valueMinX = dataList_x.at(i).first.y()) : true;
+
+		dataList_y.at(i).first.y() > valueMaxY ? (valueMaxY = dataList_y.at(i).first.y()) : true;
+		dataList_y.at(i).first.y()< valueMinY ? (valueMinY = dataList_y.at(i).first.y()) : true;
+
 		series->append(QPointF(dataList_x.at(i).first.y(), dataList_y.at(i).first.y()));
-	}
-	QString content = ui.chartLineEdit->text();
-	content.replace("，", ",");
-	QStringList stringList = content.split(',');
-	series->setName(stringList[1] + ":" +stringList[0]);
+		ChartTip* m_tooltip = new ChartTip(chart);
+		mytips.append(m_tooltip);
+		m_tooltip->setText(QString(dataList_x.at(i).second));
+		QPointF point(dataList_x.at(i).first.y(), dataList_y.at(i).first.y());
+		m_tooltip->setAnchor(point);
+		//m_tooltip->setZValue(11);
+		//m_tooltip->updateGeometry();
+		//m_tooltip->show();
+	}	
+
 	chart->addSeries(series);
 
-	chart->createDefaultAxes();
-	chart->axes(Qt::Horizontal).first()->setRange(-100, 100);
-	chart->axes(Qt::Vertical).first()->setRange(-100, 100);
-	// Add space to label to add space between labels and axis
-	QValueAxis * axisY = qobject_cast<QValueAxis*>(chart->axes(Qt::Vertical).first());
-	Q_ASSERT(axisY);
-	axisY->setLabelFormat("%.1f  ");
+	QValueAxis * m_typeAxisY = new QValueAxis;
+	QValueAxis * m_typeAxisX = new QValueAxis;
+
+	double absy = abs(valueMaxY) > abs(valueMinY) ? abs(valueMaxY) : abs(valueMinY);
+	double absx = abs(valueMaxX) > abs(valueMinX) ? abs(valueMaxX) : abs(valueMinX);
+
+	m_typeAxisY->setRange(-absy*1.5, absy*1.5);
+	m_typeAxisX->setRange(-absx*1.5, absx*1.5);
+
+	//m_typeAxisY->setGridLineVisible(false);   //隐藏背景网格Y轴框线
+	//m_typeAxisX->setGridLineVisible(false);   //隐藏背景网格X轴框线
+	m_typeAxisX->setVisible(false);
+	m_typeAxisY->setVisible(false);
+
+	chart->setAxisX(m_typeAxisX, series);
+	chart->setAxisY(m_typeAxisY, series);
+	
+	//for (ChartTip* tmp : mytips) {
+	//	tmp->updateGeometry();
+	//	tmp->show();
+	//}
+	
+	//chart->createDefaultAxes();
+	chart->setAnimationOptions(QChart::SeriesAnimations);
+	chart->setBackgroundVisible(false);
+	//chart->setDropShadowEnabled(false);
 	return chart;
 }
 
@@ -271,6 +311,9 @@ QChart* DataVisualization::createBarChart()
 	chart->setTitle(title);
 	chart->setAnimationOptions(QChart::SeriesAnimations);
 
+	series->setLabelsPosition(QAbstractBarSeries::LabelsInsideEnd); // 设置数据系列标签的位置于数据柱内测上方
+	series->setLabelsVisible(true);
+
 	QStringList categories;
 	for(int tmp=0;tmp< m_dataTable[0].size();tmp++)
 		categories << m_dataTable[0][tmp].second;
@@ -298,10 +341,17 @@ void DataVisualization::displayLineChart()
 void DataVisualization::displayScatterChart()
 {
 	m_dataTable.clear();
-	updataChartData();
+	updataChartDataForScatter();
 	QChart * currentChart = createScatterChartTwo();
+
 	QChart* previous = chartView->chart();
 	chartView->setChart(currentChart);
+	chartView->setStyleSheet(R"(QGraphicsView{ background-image:url(:/DataVisualization/Resources/back.jpg);})");
+	//chartView->setBackgroundBrush(QBrush(QColor(34, 36, 42)));
+
+	for (ChartTip* tmp : mytips) {
+		tmp->updateGeometry();
+	}
 	if (previous)
 		delete previous;
 }
@@ -368,11 +418,34 @@ void DataVisualization::addSelectedRowColumData(int column)
 		if (item == nullptr)
 		{
 			dataList << Data(QPointF(i, 0),
-				QString::number(column) + ":" + QString::number(i));
+				QString(tableWidget->item(i, 1)->text()));
 			continue;
 		}
 		dataList << Data(QPointF(i, item->text().toDouble()),
 			QString(tableWidget->item(i, 1)->text()));
+	}
+	m_dataTable << dataList;
+}
+
+void DataVisualization::addSelectedRowColumDataForScatter(int column)
+{
+	DataList dataList;
+
+	for (int i = 1; i < tableWidget->rowCount(); i++)
+	{
+		if (tableWidget->isRowHidden(i) || !rowChecked[i])
+		{
+			continue;
+		}
+		auto item = tableWidget->item(i, column);
+		if (item == nullptr)
+		{
+			dataList << Data(QPointF(i, 0),
+				QString(tableWidget->item(i, 4)->text()));
+			continue;
+		}
+		dataList << Data(QPointF(i, item->text().toDouble()),
+			QString(tableWidget->item(i, 4)->text()));
 	}
 	m_dataTable << dataList;
 }
@@ -393,6 +466,25 @@ void DataVisualization::updataChartData()
 			continue;
 		}
 		addSelectedRowColumData(column);
+	}
+}
+
+void DataVisualization::updataChartDataForScatter()
+{
+	QString content = ui.chartLineEdit->text();
+	//content = content.replace(QChar('，'), QChar(','));
+	//content = content.replace(QChar('；'), QChar(';'));
+	QStringList stringLists = content.split(';');
+	QStringList stringList = stringLists[0].split(',');
+	for (QString s : stringList)
+	{
+		int column = headerString2ColumnNumber(s);
+		if (column == -1)
+		{
+			printf("can't find column : %s\n", qPrintable(s));
+			continue;
+		}
+		addSelectedRowColumDataForScatter(column);
 	}
 }
 
@@ -511,9 +603,11 @@ void DataVisualization::displayData(const std::vector<std::vector<QVariant>>& da
 	for (const QString& name : selectHeaderName)
 	{
 		int column = headerString2ColumnNumber(name);
-		ItemSelectCombox* combo = createSelectCombox(name, columnlist);
-		tableWidget->setCellWidget(0, column, combo->content);//row行，0列
-		columnlist++;
+		if (column != -1) {
+			ItemSelectCombox* combo = createSelectCombox(name, columnlist);
+			tableWidget->setCellWidget(0, column, combo->content);//row行，0列
+			columnlist++;
+		}	
 	}
 }
 

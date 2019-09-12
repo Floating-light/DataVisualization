@@ -689,10 +689,10 @@ void ExcelDataServer::setRowColor(QAxObject* sheet, int columns)
 
 	for (auto iter : colorRows)
 	{
-		printf("line : %d ... ...\n", iter.first + 5);
+		printf("line : %d ... ...\n", iter.first + 4);
 		for (int i = 1; i <= columns; ++i)
 		{
-			QAxObject* cell = sheet->querySubObject("Cells(int, int)", iter.first + 5, i);
+			QAxObject* cell = sheet->querySubObject("Cells(int, int)", iter.first + 4, i);
 			QAxObject* interior = cell->querySubObject("Interior");
 			interior->setProperty("Color", color.find(iter.second)->second);   //设置单元格背景色
 			delete interior;
@@ -724,7 +724,7 @@ void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 
 	getColumnSpecifyData(exportColumn, exportData);
 
-	for (int i = 3; i >= 0; --i)
+	for (int i = 2; i >=0; --i)
 	{
 		exportData.push_front(tempValue.toList().at(i).toList());
 	}
@@ -735,11 +735,8 @@ void ExcelDataServer::templateExport(const QString& templatePath, int headerRow)
 	////usedrange->setProperty("Value", tempValue);
 
 	writeArea(templateSheet, exportData);
-
-
 	setRowColor(templateSheet, exportData.at(0).size());
 	tempBook->dynamicCall("Save()");
-	
 	tempBook->dynamicCall("Close(Boolean)", false);
 	delete tempBook;
 }

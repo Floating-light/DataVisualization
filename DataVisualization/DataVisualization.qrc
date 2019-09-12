@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="DataVisualization">
+    <qresource prefix="/DataVisualization">
+        <file>Resources/back.jpg</file>
     </qresource>
 </RCC>

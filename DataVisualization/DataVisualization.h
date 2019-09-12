@@ -39,6 +39,8 @@
 #include "service.h"
 #include <QMessageBox>
 #include "MyCombbox.h"
+#include "charttip.h"
+
 QT_BEGIN_NAMESPACE
 class QComboBox;
 class QCheckBox;
@@ -116,6 +118,7 @@ private:
 	Ui::DataVisualizationClass ui;
 	DataTable m_dataTable;
 	QChartView*chartView ;
+	QVector <ChartTip *> mytips;
 	QTableWidget* tableWidget;
 	QHBoxLayout* hLayout;
 
@@ -129,7 +132,9 @@ private:
 	DataTable generateRandomData(int listCount, int valueMax, int valueCount)const;
 	void addData(int column);
 	void addSelectedRowColumData(int column);
+	void addSelectedRowColumDataForScatter(int column);
 	void updataChartData();
+	void updataChartDataForScatter();
 	//return -1 if not find, begin with 0
 	int headerString2ColumnNumber(const QString& headerName);
 
