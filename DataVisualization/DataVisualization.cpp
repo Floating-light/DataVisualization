@@ -488,16 +488,6 @@ void DataVisualization::updataChartDataForScatter()
 	}
 }
 
-//obsolete
-void DataVisualization::headerClicked(int i ) {
-	printf("headerClicked index : %d", i);
-	addData(i);
-	QChart* previous = chartView->chart();
-	chartView->setChart(createLineChart());
-	if(previous)
-	    delete previous;
-}
-
 void DataVisualization::displayData(const QList<QList<QVariant>>& data, 
 	const  std::vector<QString>& names)
 {
@@ -560,14 +550,11 @@ void DataVisualization::displayData(const std::vector<std::vector<QVariant>>& da
 	int columns = data.at(0).size() + 1;
 	tableWidget->clear();
 	tableWidget->setRowCount(rows);
-	//tableWidget->setRowCount(21);
 	tableWidget->setColumnCount(columns);
 
 	//tableWidget->setHorizontalHeader();
-
 	//QHeaderView* firstHeader = new QHeaderView(Qt::Horizontal, tableWidget);
 	//firstHeader->setItemDelegate();
-
 	//tableWidget->setHorizontalHeader(firstHeader);
 
 	QStringList headers;
@@ -599,6 +586,7 @@ void DataVisualization::displayData(const std::vector<std::vector<QVariant>>& da
 		}
 	}
     //create combobox
+	ui.itemSelect.clear();//清楚原有表的combobox
 	int columnlist = 0; //反向搜索的索引
 	for (const QString& name : selectHeaderName)
 	{
@@ -683,31 +671,6 @@ void DataVisualization::checkBoxchange(int state)
 	rowChecked[row] = (state == Qt::Checked);
 }
 
-//obsolete
-void DataVisualization::buttonPress()
-{
-	/*std::vector<int> result = getSelectRowNumber(std::vector<QString>{QString::fromLocal8Bit(std::string("营销操盘方").data())},
-		std::vector<QString>{QString::fromLocal8Bit(std::string("新城").data())});
-	displaySelectRow(result);*/
-	/*if (count == 0)
-	{
-		addSelectCombox(QStringLiteral("事业部\n（住开/商开）"));
-		addSelectCombox(QStringLiteral("营销操盘方"));
-		addSelectCombox(QStringLiteral("城市环线"));
-	}
-	else
-	{
-		filterItem();
-	}
-	++count;*/
-	/*scatterData = std::map<QString, std::vector<double>>
-	{ {QStringLiteral("x轴"),std::vector<double >{2, 3,4,5,6.5,1.2,2.6,7.5}},
-	  {QStringLiteral("y轴"),std::vector<double >{3, 1.2,4.7,5.3,6.5,1.2,7.8,7.5}}
-	};*/
-	
-	//QChart* currentChart = createScatterChart();
-}
-
 void DataVisualization::uniqueItem(const QString& headerName, std::vector<QString>& items)
 {
 	int column = headerString2ColumnNumber(headerName);
@@ -730,25 +693,6 @@ void DataVisualization::uniqueItem(const QString& headerName, std::vector<QStrin
 		printf("Can not find column :%s\n", qPrintable(headerName));
 	}
 	
-}
-
-//obsolete
-void DataVisualization::addSelectCombox(const QString& headerName)
-{
-	std::vector<QString> uniqueNames;
-	uniqueItem(headerName, uniqueNames);
-
-	ItemSelectCombox* view = new ItemSelectCombox();
-	view->label = new QLabel(headerName);
-	//view->content = new MyCombbox();
-	view->content->addItem(QStringLiteral("全部"));
-	for (const QString& name : uniqueNames)
-	{
-		view->content->addItem(name);
-	}
-	ui.itemSelect.push_back(view);
-	ui.topCombox->addWidget(view->label);
-	ui.topCombox->addWidget(view->content);
 }
 
 //to do
@@ -795,13 +739,6 @@ ItemSelectCombox* DataVisualization::createSelectCombox(const QString& headerNam
 	/*ui.topCombox->addWidget(view->label);
 	ui.topCombox->addWidget(view->content);*/
 	return view;
-}
-
-//obsolete
-void DataVisualization::comboxChanged(const QString&)
-{
-	//QComboBox* combox = (QComboBox*)sender();
-	filterItem();
 }
 
 void DataVisualization::onCurrentIndexChanged(int index) {
@@ -851,6 +788,35 @@ void DataVisualization::onCurrentIndexChanged(int index) {
 	displaySelectRow(rows);
 }
 
+void DataVisualization::templateExport()
+{
+	QString filePath = QFileDialog::getOpenFileName();
+	printf("file path : %s\n", qPrintable(filePath));
+	if (filePath == "")
+	{
+		printf("file path is empty %s\n");
+		return;
+	}
+	excelServer->templateExport(filePath, 3);
+	printf("Export complete.\n");
+}
+
+void DataVisualization::picExport() {
+
+	QScreen * screen = QGuiApplication::primaryScreen();
+	QPixmap p = chartView->grab(); 
+	QImage image = p.toImage();
+	image.save("./pics/chart.png");
+	QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("保存<font color='red'>完成</font>"));
+}
+
+//obsolete
+void DataVisualization::comboxChanged(const QString&)
+{
+	//QComboBox* combox = (QComboBox*)sender();
+	filterItem();
+}
+
 //obsolete
 void DataVisualization::filterItem()
 {
@@ -873,7 +839,7 @@ void DataVisualization::initExportenu()
 {
 	auto iter = report.cbegin();
 
-	while(iter != report.cend())
+	while (iter != report.cend())
 	{
 		QAction* exportAction = new QAction();
 		exportAction->setText(iter.key());
@@ -883,6 +849,7 @@ void DataVisualization::initExportenu()
 		++iter;
 	}
 }
+
 //obsolete
 void DataVisualization::doExport()
 {
@@ -901,7 +868,7 @@ void DataVisualization::doExport()
 	std::vector<std::vector<QVariant>>& allContent = excelServer->sheetContent;
 	for (int i = startrow - 1; i < allContent.size(); ++i)
 	{
-		if (tableWidget->isRowHidden(i - startrow + 2)||!rowChecked[i - startrow + 2])
+		if (tableWidget->isRowHidden(i - startrow + 2) || !rowChecked[i - startrow + 2])
 			continue;
 		QList<QVariant> currentRow;
 
@@ -915,24 +882,56 @@ void DataVisualization::doExport()
 	excelServer->exportSheet(exportData, action->text());
 }
 
-void DataVisualization::templateExport()
+//obsolete
+void DataVisualization::addSelectCombox(const QString& headerName)
 {
-	QString filePath = QFileDialog::getOpenFileName();
-	printf("file path : %s\n", qPrintable(filePath));
-	if (filePath == "")
+	std::vector<QString> uniqueNames;
+	uniqueItem(headerName, uniqueNames);
+
+	ItemSelectCombox* view = new ItemSelectCombox();
+	view->label = new QLabel(headerName);
+	//view->content = new MyCombbox();
+	view->content->addItem(QStringLiteral("全部"));
+	for (const QString& name : uniqueNames)
 	{
-		printf("file path is empty %s\n");
-		return;
+		view->content->addItem(name);
 	}
-	excelServer->templateExport(filePath, 3);
-	printf("Export complete.\n");
+	ui.itemSelect.push_back(view);
+	ui.topCombox->addWidget(view->label);
+	ui.topCombox->addWidget(view->content);
 }
 
-void DataVisualization::picExport() {
+//obsolete
+void DataVisualization::buttonPress()
+{
+	/*std::vector<int> result = getSelectRowNumber(std::vector<QString>{QString::fromLocal8Bit(std::string("营销操盘方").data())},
+	std::vector<QString>{QString::fromLocal8Bit(std::string("新城").data())});
+	displaySelectRow(result);*/
+	/*if (count == 0)
+	{
+	addSelectCombox(QStringLiteral("事业部\n（住开/商开）"));
+	addSelectCombox(QStringLiteral("营销操盘方"));
+	addSelectCombox(QStringLiteral("城市环线"));
+	}
+	else
+	{
+	filterItem();
+	}
+	++count;*/
+	/*scatterData = std::map<QString, std::vector<double>>
+	{ {QStringLiteral("x轴"),std::vector<double >{2, 3,4,5,6.5,1.2,2.6,7.5}},
+	{QStringLiteral("y轴"),std::vector<double >{3, 1.2,4.7,5.3,6.5,1.2,7.8,7.5}}
+	};*/
 
-	QScreen * screen = QGuiApplication::primaryScreen();
-	QPixmap p = chartView->grab(); 
-	QImage image = p.toImage();
-	image.save("./pics/chart.png");
-	QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("保存<font color='red'>完成</font>"));
+	//QChart* currentChart = createScatterChart();
+}
+
+//obsolete
+void DataVisualization::headerClicked(int i) {
+	printf("headerClicked index : %d", i);
+	addData(i);
+	QChart* previous = chartView->chart();
+	chartView->setChart(createLineChart());
+	if (previous)
+		delete previous;
 }
