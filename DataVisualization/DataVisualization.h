@@ -133,8 +133,8 @@ private:
 	void addData(int column);
 	void addSelectedRowColumData(int column);
 	void addSelectedRowColumDataForScatter(int column);
-	void updataChartData();
-	void updataChartDataForScatter();
+	bool updataChartData();
+	bool updataChartDataForScatter();
 	//return -1 if not find, begin with 0
 	int headerString2ColumnNumber(const QString& headerName);
 

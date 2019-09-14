@@ -1,4 +1,5 @@
-﻿#include "DataVisualization.h"
+﻿#include <QTimer>
+#include "DataVisualization.h"
 #include "charttip.h"
 
 DataVisualization::DataVisualization(QWidget* parent)
@@ -34,7 +35,7 @@ DataVisualization::~DataVisualization()
 	
 	if (excelServer)
 	{
-		saveFile();
+		//saveFile();
 		excelServer->freeExcel();
 	}
 	    
@@ -48,10 +49,23 @@ void DataVisualization::saveFile()
 		QVariant var;
 		excelServer->castSheetVector2Variant(var);
 		usedrange->setProperty("Value", var);
-
 		worrkbook->dynamicCall("Save()");
-		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("保存<font color='red'>完成</font>"));
-		printf("Save complete ...\n");
+
+		QMessageBox *box = new QMessageBox(this);
+		box->setIcon(QMessageBox::Information);
+		box->setWindowTitle(QStringLiteral("提示"));
+		box->setText(QStringLiteral("保存<font color='red'>成功</font>"));
+		QTimer::singleShot(1000, box, SLOT(accept())); //也可将accept改为close
+		box->exec();
+	}
+	else
+	{
+		QMessageBox *box = new QMessageBox(this);
+		box->setIcon(QMessageBox::Information);
+		box->setWindowTitle(QStringLiteral("提示"));
+		box->setText(QStringLiteral("请先打开文件"));
+		QTimer::singleShot(1000, box, SLOT(accept())); //也可将accept改为close
+		box->exec();
 	}
 }
 
@@ -103,15 +117,19 @@ void DataVisualization::openFile()
 	printf("Excel initialization complete\n");
 	printf("Analysis data...\n");
 	displayData(excelServer->sheetContent, 3, 2);
-	printf("Complete.\n");
-	QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("打开<font color='red'>成功</font>"));
+	QMessageBox *box = new QMessageBox(this);
+	box->setIcon(QMessageBox::Information);
+	box->setWindowTitle(QStringLiteral("提示"));
+	box->setText(QStringLiteral("打开<font color='red'>成功</font>"));
+	QTimer::singleShot(1000, box, SLOT(accept())); //也可将accept改为close
+	box->exec();
 }
 
 void DataVisualization::excute()
 {
 	if (excelServer == nullptr)
 	{
-		printf("plase open a excel file first.\n");
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("请先打开文件.\n"));
 		return;
 	}
 	printf("Excute calculator... ...\n");
@@ -121,7 +139,13 @@ void DataVisualization::excute()
 	printf("updata table view ...\n");
 	updataContent(excelServer->sheetContent, 3, 2);
 	printf("updata complete...\n");
-	QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("计算<font color='red'>完成</font>"));
+
+	QMessageBox *box = new QMessageBox(this);
+	box->setIcon(QMessageBox::Information);
+	box->setWindowTitle(QStringLiteral("提示"));
+	box->setText(QStringLiteral("计算<font color='red'>完成</font>"));
+	QTimer::singleShot(1000, box, SLOT(accept())); //也可将accept改为close
+	box->exec();
 }
 
 QChart* DataVisualization::createLineChart() const
@@ -218,8 +242,7 @@ QChart* DataVisualization::createScatterChartTwo()
 	// scatter chart
 	QString content = ui.chartLineEdit->text();
 	QStringList stringLists = content.split(';');
-	QString title = stringLists[1];
-
+	//QString title = stringLists[1];
 	QChart* chart = new QChart();
 	//chart->setTitle(title);
 	chart->legend()->hide();
@@ -248,9 +271,6 @@ QChart* DataVisualization::createScatterChartTwo()
 		m_tooltip->setText(QString(dataList_x.at(i).second));
 		QPointF point(dataList_x.at(i).first.y(), dataList_y.at(i).first.y());
 		m_tooltip->setAnchor(point);
-		//m_tooltip->setZValue(11);
-		//m_tooltip->updateGeometry();
-		//m_tooltip->show();
 	}	
 
 	chart->addSeries(series);
@@ -287,10 +307,19 @@ QChart* DataVisualization::createScatterChartTwo()
 QChart* DataVisualization::createBarChart()
 {
 	QString content = ui.chartLineEdit->text();
-	//content = content.replace(QChar(','), QChar('，'));
-	//content = content.replace(QChar(';'), QChar('；'));
 	QStringList stringLists = content.split(';');
+	if (stringLists.size() != 3) {
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("输入格式错误"));
+		QChart* chartfalse = new QChart();
+		return chartfalse;
+	}
+	QStringList field = stringLists[0].split(',');
 	QStringList map = stringLists[1].split(',');
+	if (field.size() != map.size()) {
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("字段数量不匹配"));
+		QChart* chartfalse = new QChart();
+		return chartfalse;
+	}
 	QString title = stringLists[2];
 	QChart* chart = new QChart();
 	int valueMax = std::numeric_limits<int>::min();
@@ -329,42 +358,58 @@ QChart* DataVisualization::createBarChart()
 
 void DataVisualization::displayLineChart()
 {
-	m_dataTable.clear();
-	updataChartData();
-	QChart* currentChart = createLineChart();
-	QChart* previous = chartView->chart();
-	chartView->setChart(currentChart);
-	if (previous)
-		delete previous;
+	if (excelServer == nullptr)
+	{
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("请先打开文件.\n"));
+		return;
+	}
+	//m_dataTable.clear();
+	//updataChartData();
+	//QChart* currentChart = createLineChart();
+	//QChart* previous = chartView->chart();
+	//chartView->setChart(currentChart);
+	//if (previous)
+		//delete previous;
 }
 
 void DataVisualization::displayScatterChart()
 {
-	m_dataTable.clear();
-	updataChartDataForScatter();
-	QChart * currentChart = createScatterChartTwo();
-
-	QChart* previous = chartView->chart();
-	chartView->setChart(currentChart);
-	chartView->setStyleSheet(R"(QGraphicsView{ background-image:url(:/DataVisualization/Resources/back.jpg);})");
-	//chartView->setBackgroundBrush(QBrush(QColor(34, 36, 42)));
-
-	for (ChartTip* tmp : mytips) {
-		tmp->updateGeometry();
+	if (excelServer == nullptr)
+	{
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("请先打开文件.\n"));
+		return;
 	}
-	if (previous)
-		delete previous;
+	m_dataTable.clear();
+	bool state = updataChartDataForScatter();
+	if (state) {
+		QChart * currentChart = createScatterChartTwo();
+		QChart* previous = chartView->chart();
+		chartView->setChart(currentChart);
+		chartView->setStyleSheet(R"(QGraphicsView{ background-image:url(:/DataVisualization/Resources/back.jpg);})");
+		for (ChartTip* tmp : mytips) {
+			tmp->updateGeometry();
+		}
+		if (previous)
+			delete previous;
+	}
 }
 
 void DataVisualization::displayBarChart()
 {
+	if (excelServer == nullptr)
+	{
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("请先打开文件.\n"));
+		return;
+	}
 	m_dataTable.clear();
-	updataChartData();
-	QChart* currentChart = createBarChart();
-	QChart* previous = chartView->chart();
-	chartView->setChart(currentChart);
-	if (previous)
-		delete previous;
+	bool state = updataChartData();
+	if (state) {
+		QChart* currentChart = createBarChart();
+		QChart* previous = chartView->chart();
+		chartView->setChart(currentChart);
+		if (previous)
+			delete previous;
+	}
 }
 
 DataTable DataVisualization::generateRandomData(int listCount, int valueMax, int valueCount) const
@@ -450,7 +495,7 @@ void DataVisualization::addSelectedRowColumDataForScatter(int column)
 	m_dataTable << dataList;
 }
 
-void DataVisualization::updataChartData()
+bool DataVisualization::updataChartData()
 {
 	QString content = ui.chartLineEdit->text();
 	//content = content.replace(QChar('，'), QChar(','));
@@ -462,14 +507,16 @@ void DataVisualization::updataChartData()
 		int column = headerString2ColumnNumber(s);
 		if (column == -1)
 		{
-			printf("can't find column : %s\n", qPrintable(s));
-			continue;
+			QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("表中无“") + s + QStringLiteral("”字段"));
+			return false;
 		}
 		addSelectedRowColumData(column);
+		
 	}
+	return true;
 }
 
-void DataVisualization::updataChartDataForScatter()
+bool DataVisualization::updataChartDataForScatter()
 {
 	QString content = ui.chartLineEdit->text();
 	//content = content.replace(QChar('，'), QChar(','));
@@ -481,11 +528,12 @@ void DataVisualization::updataChartDataForScatter()
 		int column = headerString2ColumnNumber(s);
 		if (column == -1)
 		{
-			printf("can't find column : %s\n", qPrintable(s));
-			continue;
+			QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("表中无“")+ s+ QStringLiteral("”字段"));
+			return false;
 		}
 		addSelectedRowColumDataForScatter(column);
 	}
+	return true;
 }
 
 void DataVisualization::displayData(const QList<QList<QVariant>>& data, 
@@ -790,6 +838,11 @@ void DataVisualization::onCurrentIndexChanged(int index) {
 
 void DataVisualization::templateExport()
 {
+	if (excelServer == nullptr)
+	{
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("请先打开文件.\n"));
+		return;
+	}
 	QString filePath = QFileDialog::getOpenFileName();
 	printf("file path : %s\n", qPrintable(filePath));
 	if (filePath == "")
@@ -799,6 +852,13 @@ void DataVisualization::templateExport()
 	}
 	excelServer->templateExport(filePath, 3);
 	printf("Export complete.\n");
+	QMessageBox *box = new QMessageBox(this);
+	box->setIcon(QMessageBox::Information);
+	box->setWindowTitle(QStringLiteral("提示"));
+	box->setText(QStringLiteral("模板输出<font color='red'>完成</font>"));
+	QTimer::singleShot(1000, box, SLOT(accept())); //也可将accept改为close
+	box->exec();
+
 }
 
 void DataVisualization::picExport() {
@@ -807,7 +867,12 @@ void DataVisualization::picExport() {
 	QPixmap p = chartView->grab(); 
 	QImage image = p.toImage();
 	image.save("./pics/chart.png");
-	QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("保存<font color='red'>完成</font>"));
+	QMessageBox *box = new QMessageBox(this);
+	box->setIcon(QMessageBox::Information);
+	box->setWindowTitle(QStringLiteral("提示"));
+	box->setText(QStringLiteral("保存图片<font color='red'>完成</font>"));
+	QTimer::singleShot(1000, box, SLOT(accept())); //也可将accept改为close
+	box->exec();
 }
 
 //obsolete
