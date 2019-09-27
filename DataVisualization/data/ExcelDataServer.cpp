@@ -690,14 +690,11 @@ void ExcelDataServer::setRowColor(QAxObject* sheet, int columns)
 	for (auto iter : colorRows)
 	{
 		printf("line : %d ... ...\n", iter.first + 4);
-		for (int i = 1; i <= columns; ++i)
-		{
-			QAxObject* cell = sheet->querySubObject("Cells(int, int)", iter.first + 4, i);
-			QAxObject* interior = cell->querySubObject("Interior");
-			interior->setProperty("Color", color.find(iter.second)->second);   //设置单元格背景色
-			delete interior;
-			delete cell;
-		}
+		QString str;
+		int2Alphabet(columns, str);
+		QAxObject* range= sheet->querySubObject("Range(QString)", "A"+ QString::number(iter.first + 4 ) +":"+ str + QString::number(iter.first + 4));
+		QAxObject* interior = range->querySubObject("Interior");
+		interior->setProperty("Color", color.find(iter.second)->second);   //设置单元格背景色
 	}
 	clock_t end = clock();
 	printf("set color total time : %f s.\n", double(end - begin) / CLOCKS_PER_SEC);
