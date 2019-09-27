@@ -775,7 +775,7 @@ ItemSelectCombox* DataVisualization::createSelectCombox(const QString& headerNam
 	if (lineEdit) {
 		lineEdit->setReadOnly(true);
 	}
-	connect(cccombox, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentIndexChanged(int)));
+	connect(cccombox, SIGNAL(activated(int)), this, SLOT(onCurrentIndexChanged(int)));
 
 	//view->content->addItem(QStringLiteral("全部"));
 	//for (const QString& name : uniqueNames)
