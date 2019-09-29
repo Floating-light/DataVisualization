@@ -133,7 +133,7 @@ public:
 
 		chartLineEdit = new QLineEdit();
 		chartLineEdit->setPlaceholderText(QStringLiteral("请输入图表所需要展示的表头"));
-		chartLineEdit->setText(QStringLiteral("19年1月期初库存,19年1月供货;1月环比对比"));
+		chartLineEdit->setText(QStringLiteral("19年1月可售,19年2月可售;1,2;3"));
 
 		mainVLayout = new QVBoxLayout();
 		mainVLayout->addWidget(chartLineEdit);

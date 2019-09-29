@@ -169,10 +169,9 @@ void DataVisualization::refreshData() {
 
 //逐个更改数据
 void DataVisualization::upDateSingeData(QString filePath,QString fileName) {
-	int firstRow = 3; //初始行
+	int firstRow = 8; //初始行
 
 	QString columnName = "a"; //计算表中列名
-
 	int columnNum=4; //当前表列号
 
 	if (fileName.startsWith("a")) {
@@ -183,6 +182,7 @@ void DataVisualization::upDateSingeData(QString filePath,QString fileName) {
 		columnName = "b";
 		columnNum = 3;
 	}
+
 	QAxObject* myWorrkbook = new QAxObject;
 	myWorrkbook = excelServer->openExcelFile(filePath);
 	if (myWorrkbook == NULL)
@@ -208,7 +208,7 @@ void DataVisualization::upDateSingeData(QString filePath,QString fileName) {
 		QAxObject *cell = worksheet->querySubObject("Cells(int,int)", tmpi, 1);
 		QVariant cell_value = cell->property("Value");  //获取单元格内容
 		QString project = QString(cell_value.toString());
-		cell = worksheet->querySubObject("Cells(int,int)", tmpi, 2);
+		cell = worksheet->querySubObject("Cells(int,int)", tmpi, 3);
 		cell_value = cell->property("Value");  //获取单元格内容
 		QString projectCode = QString(cell_value.toString());
 		cell = worksheet->querySubObject("Cells(int,int)", tmpi, columnNum);
@@ -220,8 +220,8 @@ void DataVisualization::upDateSingeData(QString filePath,QString fileName) {
 
 //data update
 void DataVisualization::exchangeData(QString project,QString projectCode, QString columnName, double value) {
-	QString projectName = QStringLiteral("项目");
-	QString projectNum = QStringLiteral("编码");
+	QString projectName = QStringLiteral("项目名称");
+	QString projectNum = QStringLiteral("项目编号");
 	for (int i = startrow; i <= endrow; i++) {
 		QString project1=excelServer->getCellData(projectName, i).toString();
 		QString projectCode1 = excelServer->getCellData(projectNum, i).toString();
@@ -414,7 +414,7 @@ QChart* DataVisualization::createBarChart()
 		QBarSet* set = new QBarSet(map[i]);
 		for (const Data& data : m_dataTable[i])
 		{
-			*set << data.first.y();
+			*set << int(data.first.y());
 			data.first.y() > valueMax ? (valueMax = data.first.y()) : true;
 			data.first.y() < valueMin ? (valueMin = data.first.y()) : true;
 		}
@@ -426,6 +426,9 @@ QChart* DataVisualization::createBarChart()
 
 	series->setLabelsPosition(QAbstractBarSeries::LabelsInsideEnd); // 设置数据系列标签的位置于数据柱内测上方
 	series->setLabelsVisible(true);
+	series->setLabelsPrecision(10);
+	series->setBarWidth(0.7);
+	//series->setLabelsFormat("@value");
 
 	QStringList categories;
 	for(int tmp=0;tmp< m_dataTable[0].size();tmp++)
