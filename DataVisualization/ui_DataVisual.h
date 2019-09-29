@@ -71,13 +71,16 @@ public:
 
 		actionOpenFile = new QAction(DataVisualizationClass);
 		actionOpenFile->setObjectName(QString::fromUtf8("actionOpen"));
-		actionOpenChart = new QAction(DataVisualizationClass);
-		actionOpenChart->setObjectName(QString::fromUtf8("actionChart"));
+		
 		histogramChart = new QAction(DataVisualizationClass);
 		scatterChart = new QAction(DataVisualizationClass);
 		lineChart = new QAction(DataVisualizationClass);
 		calculate = new QAction(DataVisualizationClass);
 		saveFile = new QAction(DataVisualizationClass);
+
+		actionOpenChart = new QAction(DataVisualizationClass);
+		actionOpenChart->setObjectName(QString::fromUtf8("actionChart"));
+
 		templateExport = new QAction(DataVisualizationClass);
 		savePic = new QAction(DataVisualizationClass);
 
@@ -93,7 +96,7 @@ public:
 
 		menuEdit = new QMenu(menuBar);
 		menuEdit->setObjectName(QString::fromUtf8("menuEdit"));
-		menuEdit->addAction(actionOpenChart);
+		//menuEdit->addAction(actionOpenChart);
 		menuEdit->addAction(histogramChart);
 		menuEdit->addAction(scatterChart);
 		menuEdit->addAction(lineChart);
@@ -102,6 +105,7 @@ public:
 
 		menuExport = new QMenu(menuBar);
 		menuExport->setObjectName(QString::fromUtf8("menuEdit"));
+		menuExport->addAction(actionOpenChart);
 		menuExport->addAction(templateExport);
 		menuExport->addAction(savePic);
 
@@ -113,12 +117,13 @@ public:
 
 		mainToolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		mainToolBar->addAction(actionOpenFile);
-		mainToolBar->addAction(histogramChart);
-		mainToolBar->addAction(lineChart);
-		mainToolBar->addAction(scatterChart);
+		mainToolBar->addAction(actionOpenChart);
 		mainToolBar->addAction(calculate);
 		mainToolBar->addAction(saveFile);
 		mainToolBar->addAction(templateExport);
+		mainToolBar->addAction(histogramChart);
+		mainToolBar->addAction(lineChart);
+		mainToolBar->addAction(scatterChart);
 		mainToolBar->addAction(savePic);
 
 		topCombox = new QHBoxLayout();
@@ -168,8 +173,6 @@ public:
 		actionOpenFile->setText(QString::fromLocal8Bit(std::string("打开").data()));
 		actionOpenFile->setIcon(QIcon("./Resources/file.png"));
 
-		actionOpenChart->setText(QString::fromLocal8Bit(std::string("图表").data()));
-		actionOpenChart->setIcon(QIcon("./Resources/all.png"));
 
 		histogramChart->setText(QStringLiteral("柱状图"));
 		histogramChart->setIcon(QIcon("./Resources/histogram.png"));
@@ -185,10 +188,13 @@ public:
 		calculate->setIcon(QIcon("./Resources/caclute.png"));//saveFile
 
 		saveFile->setText(QStringLiteral("保存"));
-		saveFile->setIcon(QIcon("./Resources/save.png"));//saveFiletemplateExport
+		saveFile->setIcon(QIcon("./Resources/save.png"));//saveFile
+
+		actionOpenChart->setText(QString::fromLocal8Bit(std::string("数据刷新").data()));
+		actionOpenChart->setIcon(QIcon("./Resources/refresh.png"));
 
 		templateExport->setText(QStringLiteral("模板导出"));
-		templateExport->setIcon(QIcon("./Resources/export.png"));//saveFile
+		templateExport->setIcon(QIcon("./Resources/export.png"));//templateExport
 
 		savePic->setText(QStringLiteral("保存图片"));
 		savePic->setIcon(QIcon("./Resources/download.png"));//savePic

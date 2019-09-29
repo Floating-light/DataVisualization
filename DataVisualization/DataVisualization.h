@@ -104,7 +104,7 @@ public:
 	void displayScatterChart();
 	void displayLineChart();
 	void displayBarChart();
-
+	void refreshData();
 	
 public slots:
 	void buttonPress();
@@ -135,14 +135,15 @@ private:
 	void addSelectedRowColumDataForScatter(int column);
 	bool updataChartData();
 	bool updataChartDataForScatter();
+	void upDateSingeData(QString filePath,QString filename);
 	//return -1 if not find, begin with 0
 	int headerString2ColumnNumber(const QString& headerName);
 
 	void openFile();
 	void saveFile();
 	void excute();
-	void updataContent(const std::vector<std::vector<QVariant>>& data,
-		int beginRow, int headerRow);
+	void updataContent(const std::vector<std::vector<QVariant>>& data, int beginRow, int headerRow);
+	void exchangeData(QString,QString,QString,double);
 
 private slots:
 	void headerClicked(int);

@@ -20,7 +20,7 @@ DataVisualization::DataVisualization(QWidget* parent)
 	ui.viewLayout->addWidget(chartView);
 
 	connect(ui.actionOpenFile, &QAction::triggered, this, &DataVisualization::openFile);
-	//connect(ui.actionOpenChart, &QAction::triggered, this, &DataVisualization::openFile);
+	connect(ui.actionOpenChart, &QAction::triggered, this, &DataVisualization::refreshData);
 	connect(ui.histogramChart, &QAction::triggered, this, &DataVisualization::displayBarChart);
 	connect(ui.scatterChart, &QAction::triggered, this, &DataVisualization::displayScatterChart);
 	connect(ui.lineChart, &QAction::triggered, this, &DataVisualization::displayLineChart);
@@ -71,10 +71,11 @@ void DataVisualization::saveFile()
 
 void DataVisualization::openFile()
 {
+	if (excelServer)
+		excelServer->freeExcel();
 	QString filePath = QFileDialog::getOpenFileName();
 	printf("file path : %s\n", qPrintable(filePath));
 
-	//excel server
 	excelServer = new ExcelDataServer();
 
 	worrkbook = excelServer->openExcelFile(filePath);
@@ -89,13 +90,9 @@ void DataVisualization::openFile()
 	}
 	printf("Excel initialization...\n");
 	QAxObject* worksheets = worrkbook->querySubObject("WorkSheets");
-	QAxObject* sheet = excelServer->getSheet(worrkbook, 1);//updata work sheets.
-	//QAxObject* sheet = excelServer->getNamedSheet(worksheets,
-		//QString::fromLocal8Bit(std::string("��������").data()));
+	QAxObject* sheet = excelServer->getSheet(worrkbook, 1);
 	excelServer->setCurrentWorksheet(sheet);
 
-	//add a new sheet
-	//QAxObject * newSheets = excelServer->addSheet(excelServer->getCurrentWorkSheets(), QString("selectedTest"));
 	usedrange = sheet->querySubObject("UsedRange");
 	excelServer->setAllData(usedrange);
 	int columsNumber = excelServer->getColumsNumber();
@@ -103,7 +100,7 @@ void DataVisualization::openFile()
 
 	startrow = 4;
 	endrow = rowsNumber;
-	//���㿪ʼ��������
+	
 	excelServer->setBeginEndRow(startrow, endrow);
 
 	//initialize calculate server
@@ -112,7 +109,7 @@ void DataVisualization::openFile()
 	initExportenu();
 
 	QVariantList resultColum3;
-	excelServer->getRowData(sheet, 3, resultColum3);//��ȡ�����е�ֵ
+	excelServer->getRowData(sheet, 3, resultColum3);
 
 	printf("Excel initialization complete\n");
 	printf("Analysis data...\n");
@@ -146,6 +143,93 @@ void DataVisualization::excute()
 	box->setText(QStringLiteral("计算<font color='red'>完成</font>"));
 	QTimer::singleShot(1000, box, SLOT(accept())); //也可将accept改为close
 	box->exec();
+}
+
+//读文件夹，更改数据
+void DataVisualization::refreshData() {
+	if (excelServer == nullptr) {
+		QMessageBox::about(this, QStringLiteral("提示"), QStringLiteral("请先导入计算表"));
+		return;
+	}
+	QString filename = QFileDialog::getExistingDirectory(NULL, tr("选择文件夹"), "E:\\", QFileDialog::ShowDirsOnly);
+	//qDebug() << filename;
+	QDir *dir = new QDir(filename);
+	QStringList filter;
+	QList<QFileInfo> *fileInfo = new QList<QFileInfo>(dir->entryInfoList(filter));
+
+	//获取文件数目、文件名称、文件路径：
+	//qDebug() << fileInfo->count();
+	for (int i = 0; i<fileInfo->count(); i++)
+	{
+		upDateSingeData(fileInfo->at(i).filePath(), fileInfo->at(i).fileName());
+		qDebug() << QString("----------------------------");
+	}
+
+}
+
+//逐个更改数据
+void DataVisualization::upDateSingeData(QString filePath,QString fileName) {
+	int firstRow = 3; //初始行
+
+	QString columnName = "a"; //计算表中列名
+
+	int columnNum=4; //当前表列号
+
+	if (fileName.startsWith("a")) {
+		columnName = "a";
+		columnNum = 3;
+	}
+	else {
+		columnName = "b";
+		columnNum = 3;
+	}
+	QAxObject* myWorrkbook = new QAxObject;
+	myWorrkbook = excelServer->openExcelFile(filePath);
+	if (myWorrkbook == NULL)
+	{
+		printf("open file failed : %s, %p\n", qPrintable(filePath), myWorrkbook);
+		return;
+	}
+	else
+	{
+		printf("open success：%s\n", qPrintable(filePath));
+	}
+	printf("Excel initialization...\n");
+	QAxObject * worksheet = myWorrkbook->querySubObject("Worksheets(int)", 1);
+	QAxObject *used_range = worksheet->querySubObject("UsedRange");
+	QAxObject *rows = used_range->querySubObject("Rows");
+	QAxObject *columns = used_range->querySubObject("Columns");
+	int row_start = used_range->property("Row").toInt();  //获取起始行   
+	int column_start = used_range->property("Column").toInt();  //获取起始列
+	int row_count = rows->property("Count").toInt();  //获取行数
+	int column_count = columns->property("Count").toInt();  //获取列数
+	
+	for (int tmpi = firstRow; tmpi < row_count + row_start; tmpi++) {
+		QAxObject *cell = worksheet->querySubObject("Cells(int,int)", tmpi, 1);
+		QVariant cell_value = cell->property("Value");  //获取单元格内容
+		QString project = QString(cell_value.toString());
+		cell = worksheet->querySubObject("Cells(int,int)", tmpi, 2);
+		cell_value = cell->property("Value");  //获取单元格内容
+		QString projectCode = QString(cell_value.toString());
+		cell = worksheet->querySubObject("Cells(int,int)", tmpi, columnNum);
+		cell_value = cell->property("Value");  //获取单元格内容
+		double cValue = cell_value.toDouble();
+		exchangeData(project, projectCode, columnName, cValue);
+	}
+}
+
+//data update
+void DataVisualization::exchangeData(QString project,QString projectCode, QString columnName, double value) {
+	QString projectName = QStringLiteral("项目");
+	QString projectNum = QStringLiteral("编码");
+	for (int i = startrow; i <= endrow; i++) {
+		QString project1=excelServer->getCellData(projectName, i).toString();
+		QString projectCode1 = excelServer->getCellData(projectNum, i).toString();
+		if (project1.compare(project)==0 && projectCode.compare(projectCode1)==0) {
+			excelServer->writedata(QVariant(value), columnName, i);
+			break;
+		}
+	}
 }
 
 QChart* DataVisualization::createLineChart() const
